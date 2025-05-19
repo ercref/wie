@@ -1,61 +1,283 @@
-name: Week-in-Ethereum
+name: Weekly Ethereum Newsletter
 
 on:
   schedule:
-    # Run at 5:00am Pacific Time (12:00 UTC) every Monday
+    # Every Monday 12:00 UTC
     - cron: '0 12 * * 1'
-  push: # for development testing
+  push:
     branches:
       - main
-    paths:
-      - '.github/workflows/week-in-ethereum.yml'
-  workflow_dispatch:  # Allow manual triggering
+  workflow_dispatch:
 
 jobs:
-  summarize-blogs:
+  generate-and-send:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
-      
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Generate timestamp
         id: generate-timestamp
         run: echo "TIMESTAMP=$(date +'%Y%m%d')" >> $GITHUB_ENV
       
-      - name: Generate Week-in-Ethereum via OpenHands
-        uses: xinbenlv/openhands-action@v1.0.1-rc3
-        with:
-          prompt: >-
-            Please help summarize the latest news in last week in Ethereum
-            development that looks like each episode of
-            https://weekinethereum.substack.com/archive. Remember to preserve
-            all links and references in the output.          
-            Save the output to file: week_in_ethereum_${{ env.TIMESTAMP }}.md
-            Use date range: past 7 days
-          llm_api_key: ${{ secrets.LLM_API_KEY }}
-      
-      - name: Upload Summary Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: week-in-ethereum
-          path: week_in_ethereum_*.md
-          retention-days: 7
-          if-no-files-found: warn
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+      
+      - name: Build Prompt Context (last 7 days)
+        run: python scripts/build_prompt_context.py
 
-      - name: Send Report to Slack
+      - name: Print context contents
+        run: cat scripts/prompt_context.md
+
+      - name: Generate Ethereum Newsletter via OpenHands
+        uses: xinbenlv/openhands-action@v1.0.1-rc3
+        with:
+          prompt: >-     
+            **Objective:** Create a comprehensive and engaging newsletter summarizing key developments, news, and discussions within the Ethereum ecosystem, structured **exactly like a typical "Week in Ethereum News" issue**. The newsletter must cover **only the 7-day period concluding on the date of execution** (e.g., if executed on May 19, 2025, it covers Monday, May 12, 2025, to Sunday, May 18, 2025, inclusive). The AI must emphasize clarity, **absolute factual accuracy, verifiable timeliness (all information strictly from the past 7 days unless intrinsically referencing future events based on current announcements)**, relevance, and use its judgment to find and prioritize the most impactful information within this exact structure, ensuring all items are bullet-pointed under their respective headings. **This newsletter is for a high-stakes audience; errors or outdated information are unacceptable.**
+            
+            **Newsletter Structure and Content Guidelines (Emulating "Week in Ethereum News"):**
+            
+            **0. Highlight of the Week**
+            
+              * **Content:** Present the single most critical or impactful update from **within the specified 7-day period**. If multiple significant events occurred, select the one with the broadest impact or novelty.
+              * **Focus:** Major network upgrade milestones achieved *this week*, breakthrough EIPs proposed/advanced *this week*, crucial official announcements made *this week*, or major security events that happened *this week*.
+              * **Presentation:** A concise sentence or two, or a single bullet point with a link. Ensure this is a distinct highlight.
+            
+            -----
+            
+            ## **Core Protocol & Research News Sections:** *(The following numbered sections 1-6 are part of the overall newsletter structure. Like all other sections, they should only be included if relevant news from the past 7 days exists for them. Each item under these headings must be a bullet point.)*
+            
+            **1. Eth R\&D Protocol Call(s) (e.g., All Core Devs Consensus/Execution, ACDC/ACDE)**
+            
+              * **Content:** Summarize key discussion points, decisions, and action items from any core developer calls that occurred in the past 7 days. Link to call notes, recordings, or official summaries. **Crucially, verify the exact date of any mentioned call against official sources (e.g., `ethereum/pm` GitHub). Do NOT report calls or summaries of calls that occurred outside the specified 7-day window. If no relevant call happened this week, state that clearly or omit the section.**
+              * **Keywords for Search:** "Ethereum AllCoreDevs summary," "ACDE notes," "ACDC notes," "Ethereum core dev call," "ethereum/pm GitHub."
+            
+            **2. Pectra (Prague + Electra) Upgrade (or current named mainnet upgrade)**
+            
+              * **Content:** Report specific progress, new EIPs considered/included, client readiness updates, testnet news, or important discussions related to the Pectra upgrade (or the current primary upcoming mainnet upgrade by its name) from the past 7 days. Focus should include updates on **devnets, specific testnet activities, dedicated Pectra testing calls,** and client compatibility related to Pectra from the past 7 days.
+              * **Keywords for Search:** "Pectra upgrade news," "[current\_upgrade\_name] Ethereum," "Ethereum network upgrade," "Pectra testnet," "Pectra testing call."
+            
+            **3. Fusaka (Osaka + Fulu) Upgrade (or next future named upgrade after Pectra)**
+            
+              * **Content:** Report any early discussions, research, or proposed EIPs related to the next major upgrade planned after Pectra (e.g., Fusaka, or its then-current name), if such news emerged in the past 7 days.
+              * **Keywords for Search:** "Fusaka upgrade," "[next\_future\_upgrade\_name] Ethereum."
+            
+            **4. Layer 1**
+            
+              * **Content:** Cover other significant L1 developments from the past 7 days not fitting under specific upgrade names. This could include research on Verkle Trees, State Expiry/History Management, SSZ, EOF, MEV strategy discussions, or new EIPs with L1 impact that aren't yet tied to a named upgrade.
+              * **Keywords for Search:** "Ethereum Layer 1 updates," "Verkle Trees Ethereum," "Ethereum state expiry," "EVM Object Format EOF."
+            
+            **5. Ethereum Foundation Blog/Announcements**
+            
+              * **Content:** Summarize and link to any official posts or significant announcements from the Ethereum Foundation or its core teams made in the past 7 days. Verify dates.
+              * **Keywords for Search:** "Ethereum Foundation blog," "EF announcement."
+            
+            **6. Research**
+            
+              * **Content:** Highlight significant research findings or discussions (e.g., from ethresear.ch) that directly impact protocol direction or understanding, if published or heavily discussed in the past 7 days, and not covered under specific upgrade or L1 sections.
+              * **Keywords for Search:** "ethresear.ch [relevant topic]," "Ethereum research paper."
+            
+            -----
+            
+            ## **Other Standard Newsletter Sections:** *(The following sections, like all sections in this newsletter, should only be included if relevant news from the past 7 days exists for them. Each item under these headings must be a bullet point.)*
+            
+            **7. Centralization watch: threatening the value of your ETH**
+            
+              * **Content:** Provide updates and analysis related to Ethereum centralization risks, focusing on validator client diversity, liquid staking derivative dominance, MEV concentration (e.g., relay/builder centralization), and other relevant factors from the past 7 days that could impact network decentralization. **Crucially, any data or statistics on client diversity (execution or consensus) MUST be sourced from or cross-verified with `clientdiversity.org` for the current period. Report the latest available data and specify its 'as of' date from the source.** Each item should be a bullet point.
+              * **Keywords for Search (Starting Points):** "Ethereum staking news," "validator updates," "MEV-Boost," "liquid staking," "client diversity Ethereum," "DVT Ethereum," "Ethereum centralization risks," "clientdiversity.org."
+            
+            **8. Client Releases**
+            
+              * **Content:** List new versions or significant updates for Ethereum client software released in the past 7 days. Each release should be a bullet point.
+              * **Focus:**
+                  * **Consensus Layer Clients:** New releases for Lighthouse, Lodestar, Nimbus, Prysm, Teku. Note key features, performance improvements, or critical fixes.
+                  * **Execution Layer Clients:** New releases for Besu, Erigon, Geth, Nethermind. Note key features, performance improvements, or critical fixes.
+              * **Keywords for Search (Starting Points):** "[Client Name] release," "Ethereum client updates," "GitHub [Client Name] releases."
+            
+            **9. Layer 2**
+            
+              * **Content:** Significant developments from major Layer 2 scaling solutions and the broader L2 ecosystem from the past 7 days. Each item should be a bullet point.
+              * **Focus:**
+                  * News from prominent L2s (e.g., Arbitrum, Optimism, zkSync, Starknet, Polygon solutions, Base, Linea).
+                  * Major announcements, network upgrades, new features, tokenomics changes, sequencer/prover updates, fraud proof systems.
+                  * New L2s launching or reaching significant milestones.
+                  * Bridge updates and security news specific to L2s.
+                  * Discussions on L2 interoperability, data availability solutions for L2s (e.g., EIP-4844 impact, Danksharding).
+              * **Keywords for Search (Starting Points):** "[L2 Name] news," "Layer 2 Ethereum updates," "Optimistic rollup," "ZK rollup," "L2beat," "EIP-4844 blobs."
+            
+            **10. EIPs/Standards**
+            
+              * **Content:** Summarize newly introduced Ethereum Improvement Proposals (EIPs) and application-level standards (ERCs), or those with significant status changes or active discussions in the past 7 days. Each item should be a bullet point.
+              * **Focus:**
+                  * Newly proposed EIPs or ERCs.
+                  * EIPs/ERCs moving to "Review," "Last Call," "Final," or "Stagnant" status.
+                  * Significant community discussions, debates, or calls for feedback on specific proposals, especially via forums like Ethereum Magicians.
+                  * Breakdowns or explanations of important or complex EIPs/ERCs.
+              * **Keywords for Search (Starting Points):** "New EIP," "ERC [number] update," "Ethereum Improvement Proposal discussion," "Ethereum Magicians EIP."
+            
+            **11. Developer Stuff**
+            
+              * **Content:** Updates on developer tools, frameworks, libraries, smart contract languages, and important resources for builders, from the past 7 days. Each item should be a bullet point.
+              * **Focus:**
+                  * New versions or major feature releases for popular developer tools (e.g., Foundry, Hardhat, Remix, Ape, Tenderly, Infura, Alchemy).
+                  * Updates to smart contract languages (Solidity, Vyper) or new development patterns.
+                  * New libraries or SDKs that simplify dApp development.
+                  * Important tutorials, workshops, developer grants, or documentation updates.
+                  * Security tools for developers (e.g., linters, static analyzers).
+              * **Keywords for Search (Starting Points):** "[Tool Name] update," "Ethereum developer tools," "Solidity news," "Vyper news," "dApp development resources."
+            
+            **12. Security**
+            
+              * **Content:** Report on security incidents, vulnerabilities, audits, and best practices relevant to the Ethereum ecosystem, from the past 7 days. Each item should be a bullet point.
+              * **Focus:**
+                  * Details of any significant DeFi exploits or hacks (protocol, amount lost, nature of vulnerability, post-mortems).
+                  * Newly disclosed vulnerabilities in smart contracts, clients, wallets, or L2s.
+                  * Important security audit releases for major protocols.
+                  * New tools, standards, or initiatives aimed at improving ecosystem security (e.g., ERC-7265).
+                  * Discussions on formal verification, bug bounties.
+              * **Keywords for Search (Starting Points):** "DeFi hack," "Ethereum security vulnerability," "smart contract audit," "crypto exploit report," "Ethereum bug bounty."
+            
+            **13. Ecosystem**
+            
+              * **Content:** Broader news from the Ethereum ecosystem, including DAOs, NFTs, public goods, and community initiatives, from the past 7 days. Each item should be a bullet point.
+              * **Focus:**
+                  * Major project milestones or product launches not covered in more specific sections.
+                  * Significant DAO governance proposals, votes, or treasury actions.
+                  * Updates on public goods funding initiatives (e.g., Gitcoin Grants rounds, Protocol Guild, ESP grants).
+                  * Noteworthy NFT collections, market trends, or infrastructure developments (unless covered in "Notable at app layer").
+                  * Community-led events, educational initiatives, or important discussions.
+              * **Keywords for Search (Starting Points):** "Ethereum project launch," "DAO news," "Gitcoin grants," "NFT news Ethereum," "Ethereum community."
+            
+            **14. Enterprise**
+            
+              * **Content:** Updates on how enterprises are using Ethereum technology (public, private, or hybrid), from the past 7 days. This section can be brief or omitted if no significant news. Each item should be a bullet point.
+              * **Focus:**
+                  * New enterprise use cases, pilots, or consortia forming around Ethereum.
+                  * Announcements from organizations like the Enterprise Ethereum Alliance (EEA) or Baseline Protocol.
+              * **Keywords for Search (Starting Points):** "Enterprise Ethereum," "blockchain for business," "Baseline Protocol."
+            
+            **15. Notable at app layer**
+            
+              * **Content:** Highlight interesting new decentralized applications (dapps), user-facing innovations, or significant updates to existing applications on Ethereum or L2s, from the past 7 days. Each item should be a bullet point.
+              * **Focus:**
+                  * Innovative or unique dapps gaining traction.
+                  * Significant feature releases or milestones for established applications.
+                  * Trends in application development (e.g., SocialFi, DePIN, new gaming models).
+              * **Keywords for Search (Starting Points):** "New Ethereum dApp," "[dApp Name] update," "DeFi project launch," "NFT marketplace news."
+            
+            **16. Regulation/Business/Tokens**
+            
+              * **Content:** News related to cryptocurrency regulation affecting Ethereum globally, significant business adoption, and important token-related developments (excluding price speculation), from the past 7 days. Each item should be a bullet point.
+              * **Focus:**
+                  * New regulatory proposals, guidelines, or enforcement actions from governments/agencies.
+                  * Major legal cases or rulings involving Ethereum, DeFi, or crypto assets.
+                  * Significant institutional adoption, investment, or product launches related to Ethereum (e.g., ETFs, custody solutions).
+                  * Partnerships between traditional businesses and Ethereum-based projects.
+                  * Important news related to token standards, tokenomics of major projects (if not covered elsewhere), or utility of tokens.
+              * **Keywords for Search (Starting Points):** "Ethereum regulation news," "crypto policy," "institutional crypto," "SEC crypto," "[Major Token] news."
+            
+            **17. Onchain Stats**
+            
+              * **Content:** Key metrics and notable trends observed on the Ethereum network and its ecosystem, reflecting data from the past 7 days or current stats. Each item should be a bullet point.
+              * **Focus:**
+                  * Average gas prices (Gwei) and transaction fee trends; impact of EIP-4844.
+                  * ETH price (briefly, e.g., ETH/USD, ETH/BTC ranges or changes over the week).
+                  * Network activity (e.g., transaction count, active addresses, contract deployments).
+                  * DeFi TVL (Total Value Locked) changes and trends.
+                  * Staking statistics (e.g., total ETH staked, validator count, changes over the week).
+                  * Relevant NFT market statistics (e.g., sales volume, unique buyers).
+              * **Keywords for Search (Starting Points):\_** "Ethereum gas fees," "ETH price chart," "Ethereum on-chain data Dune," "DeFi TVL," "Ethereum staking stats."
+            
+            **18. Miscellaneous**
+            
+              * **Content:** A collection of other interesting articles, blog posts, podcasts, videos, or discussions from the past 7 days that don't fit neatly into other categories but are relevant and insightful for the Ethereum community. Each item should be a bullet point.
+              * **Focus:**
+                  * Thought-provoking opinion pieces or long-form analyses from influential figures.
+                  * Significant community discussions on social media or forums.
+                  * Educational content explaining complex Ethereum concepts.
+                  * Links to useful tools or resources not covered elsewhere.
+              * **Keywords for Search (Starting Points):\_** "Ethereum community discussion," "[Influencer Name] Ethereum blog/podcast," "Ethereum explained."
+            
+            **19. Job Postings**
+            
+              * **Content:** List job opportunities within the Ethereum ecosystem, ideally posted or highlighted in the past 7 days. Each item should be a bullet point.
+              * **Focus:** Roles from various companies and projects in the space.
+              * **Keywords for Search (Starting Points):\_** "Ethereum jobs," "blockchain developer jobs," "crypto jobs [specific role]."
+            
+            **20. Upcoming Dates of Note**
+            
+              * **Content:** A list of important upcoming Ethereum-related virtual and in-person events, conferences, workshops, and deadlines. Each item should be a bullet point.
+              * **Focus:**
+                  * Events scheduled for the next few weeks/months.
+                  * Important deadlines for grant applications, EIP comments, testnet participation, calls for papers.
+              * **Keywords for Search (Starting Points):\_** "Ethereum conference," "Devcon," "ETHGlobal hackathon," "blockchain events calendar."
+            
+            **General AI Instructions:**
+            
+              * **Strict Date Adherence:** All reported news, updates, and highlights **MUST originate from events, publications, or data released strictly within the specified 7-day period.** No exceptions. If an event is recurring, only report on the instance that happened in the past 7 days.
+              * **Primary Sources:** Prioritize information from official sources such as `blog.ethereum.org`, the `ethereum/pm GitHub` repository (for core dev meeting notes), `ethresear.ch` (for research), `clientdiversity.org` (for staking client data), and `ethereum-magicians.org` (for EIP discussions).
+              * **Secondary Sources:** Supplement with reputable crypto news outlets (e.g., The Defiant, CoinDesk, Decrypt, Blockworks, Rekt News for security), project blogs, and well-known community figures. Critically evaluate the reliability of secondary sources.
+              * **Summarization:** For each item, provide a concise summary (typically 1-3 sentences). Capture the essence of the news and its significance.
+              * **Linking:** **Crucially, include a direct link to the original source for each piece of news.**
+              * **Tone:** Maintain a neutral, objective, and informative tone. Avoid speculation or unverified claims.
+              * **Structure & Formatting:**
+                  * Organize the information clearly under the respective headings as specified.
+                  * **All individual news items, links, or list entries under any heading MUST be formatted as bullet points.** (e.g., `* Item 1...`, `* Item 2...`).
+              * **Accuracy & Timeliness:**
+                  * **Actively verify all facts, especially dates of events (like developer calls, releases), and figures against primary, official sources before inclusion.**
+                  * If no significant update for a specific topic or section occurred within the 7-day window, explicitly state that or omit the section as per "Week in Ethereum News" style, rather than including older information.
+                  * Cross-reference information where possible.
+              * **Completeness & Relevance:**
+                  * Strive for comprehensive coverage of significant events, but use judgment to filter out minor or irrelevant updates.
+                  * **Crucially, ALL sections (0-20) should ONLY be included in the output if there were relevant updates for them in the past 7 days.** If a section has no significant news for the week, it should be omitted entirely to match the lean style of "Week in Ethereum News."
+              * **"Week in Ethereum News" Style:** **This is paramount.** Emulate the exact section titling, dynamic inclusion of all sections based on weekly content, general style, depth, and comprehensiveness of a typical "Week in Ethereum News" issue. The AI should "read" several recent issues to internalize the style, tone, and level of detail.
+            
+            **Output Format:**
+            The final output should be a well-formatted newsletter in Markdown, suitable for publication, with all original links and references preserved. Start with the "Highlight of the Week" section. All list items must use bullet points.    
+
+            You are provided with structured context data:
+            {{context}}
+
+            Use date range: past 7 days
+            Save the result to: newsletter_${{ env.TIMESTAMP }}.md
+            
+          context: scripts/prompt_context.md
+          llm_api_key: ${{ secrets.LLM_API_KEY }}
+
+      - name: Upload Summary Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-ethereum-newsletter
+          path: newsletter_*.md
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies round 2
+        run: pip install resend markdown2
+
+      - name: Send Ethereum Newsletter via Resend
         env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          NEWSLETTER_RECIPIENT: ${{ secrets.NEWSLETTER_RECIPIENT }}
+          TIMESTAMP: ${{ env.TIMESTAMP }}
         run: |
-          python send_to_slack.py \
-            --input_file "week_in_ethereum_${{ env.TIMESTAMP }}.md" \
-            --channel "#random" \
-            --use_thread 
+          # Find the latest generated newsletter file
+          ls -la  # Add this to log the current directory and all files
+
+          FILE=$(ls newsletter_*.md 2>/dev/null | tail -n 1)
+
+          if [ -z "$FILE" ]; then
+            echo "No newsletter file found in current directory."
+            exit 1
+          fi
+
+          echo "Using $FILE"
+          python scripts/send_newsletter.py "$FILE"
