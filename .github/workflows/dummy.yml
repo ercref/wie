@@ -1,0 +1,26 @@
+name: Dummy Workflow
+
+on:
+  schedule:
+    # Every Monday 12:00 UTC
+    - cron: '0 15 * * 5'
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  generate-and-send:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate timestamp
+        id: generate-timestamp
+        run: echo "Hello world from the dummy workflow TIMESTAMP=$(date +'%Y%m%d')"
+      
