@@ -262,13 +262,11 @@ jobs:
             The final output should be a well-formatted newsletter in Markdown, suitable for publication, with all original links and references preserved. Start with the "Highlight of the Week" section. All list items must use bullet points.
             
 
-            You are provided with structured context data:
-            {{context}}
+            Your structured context data is located at 'scripts/prompt_context.md' in your workspace. Please read this file to obtain the structured context data.
 
             Use date range: past 7 days
             Save the result to: newsletter_${{ env.TIMESTAMP }}.md
             
-          context: scripts/prompt_context.md
           llm_api_key: ${{ secrets.LLM_API_KEY }}
       
       - name: Debug Workspace Contents Before Artifact Upload
