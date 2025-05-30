@@ -224,7 +224,4 @@ The newsletter must cover **only the 7-day period concluding on the date of exec
 The final output should be a well-formatted newsletter in Markdown, suitable for publication, with all original links and references preserved. Start with the "Highlight of the Week" section. All list items must use bullet points.
 
 
-Your structured context data is located at 'scripts/prompt_context.md' in your workspace. Please read this file to obtain the structured context data.
 
-Use date range: past 7 days
-Save the result to: newsletter_${{ env.TIMESTAMP }}.md
