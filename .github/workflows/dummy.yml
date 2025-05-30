@@ -24,3 +24,13 @@ jobs:
         id: generate-timestamp
         run: echo "Hello world from the dummy workflow TIMESTAMP=$(date +'%Y%m%d')"
       
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Build Prompt Context (last 7 days)
+        run: python scripts/build_prompt_context.py
+
+      - name: Print context contents
+        run: cat scripts/prompt_context.md
