@@ -32,13 +32,19 @@ jobs:
       - name: Build Prompt Context (last 7 days)
         run: python scripts/build_prompt_context.py
 
-      - name: Print context contents
+      - name: Print context contents for debugging
         run: cat scripts/prompt_context.md
 
       - name: Generate Ethereum Newsletter via OpenHands
         uses: xinbenlv/openhands-action@v1.0.1-rc3
         with:
-          prompt: Print "Hello world" by echo
+          prompt: >- 
+            Read scripts/prompt.md from the root of the repository and use 
+            it to generate a newsletter.
+            Your structured context data is located at 'scripts/prompt_context.md' in your workspace.
+            Please read this file to obtain the structured context data.
+            Use date range: past 7 days
+            Save the result to: newsletter_${{ env.TIMESTAMP }}.md
           llm_api_key: ${{ secrets.LLM_API_KEY }}
       
       - name: Debug Workspace Contents Before Artifact Upload
