@@ -3,7 +3,7 @@ name: Weekly Ethereum Newsletter
 on:
   schedule:
     # Every Monday 12:00 UTC
-    - cron: '0 12 * * 1'
+    - cron: '0 15 * * 5'
   push:
     branches:
       - main
@@ -35,8 +35,12 @@ jobs:
       - name: Generate Ethereum Newsletter via OpenHands
         uses: xinbenlv/openhands-action@v1.0.1-rc3
         with:
-          prompt: >-     
-            **Objective:** Create a comprehensive and engaging newsletter summarizing key developments, news, and discussions within the Ethereum ecosystem, structured **exactly like a typical "Week in Ethereum News" issue**. The newsletter must cover **only the 7-day period concluding on the date of execution** (e.g., if executed on May 19, 2025, it covers Monday, May 12, 2025, to Sunday, May 18, 2025, inclusive). The AI must emphasize clarity, **absolute factual accuracy, verifiable timeliness (all information strictly from the past 7 days unless intrinsically referencing future events based on current announcements)**, relevance, and use its judgment to find and prioritize the most impactful information within this exact structure, ensuring all items are bullet-pointed under their respective headings. **This newsletter is for a high-stakes audience; errors or outdated information are unacceptable.**
+          prompt: >- 
+            **Objective:** Create a comprehensive and engaging newsletter summarizing key developments, news, and discussions within the Ethereum ecosystem, structured **exactly like a typical "Week in Ethereum News" issue**.
+            
+            **CRITICAL OVERARCHING RULE: This newsletter MUST ONLY contain information, news, and updates that have occurred or were published within the strict 7-day period concluding on the date of execution (e.g., if executed on May 25, 2025, it covers Monday, May 19, 2025, to Sunday, May 25, 2025, inclusive). Furthermore, if any defined section or category below does not have any relevant updates from this 7-day period, that entire section or category MUST be omitted from the final newsletter. Do not include sections with no new information.**
+            
+            The newsletter must cover **only the 7-day period concluding on the date of execution** (e.g., if executed on May 25, 2025, it covers Monday, May 19, 2025, to Sunday, May 25, 2025, inclusive). The AI must emphasize clarity, **absolute factual accuracy, verifiable timeliness (all information strictly from the past 7 days unless intrinsically referencing future events based on current announcements)**, relevance, and use its judgment to find and prioritize the most impactful information within this exact structure, ensuring all items are bullet-pointed under their respective headings. **This newsletter is for a high-stakes audience; errors or outdated information are unacceptable.**
             
             **Newsletter Structure and Content Guidelines (Emulating "Week in Ethereum News"):**
             
@@ -52,13 +56,21 @@ jobs:
             
             **1. Eth R\&D Protocol Call(s) (e.g., All Core Devs Consensus/Execution, ACDC/ACDE)**
             
-              * **Content:** Summarize key discussion points, decisions, and action items from any core developer calls that occurred in the past 7 days. Link to call notes, recordings, or official summaries. **Crucially, verify the exact date of any mentioned call against official sources (e.g., `ethereum/pm` GitHub). Do NOT report calls or summaries of calls that occurred outside the specified 7-day window. If no relevant call happened this week, state that clearly or omit the section.**
-              * **Keywords for Search:** "Ethereum AllCoreDevs summary," "ACDE notes," "ACDC notes," "Ethereum core dev call," "ethereum/pm GitHub."
+              * **Content:**
+                  * Provide summaries for any core developer calls (ACDE, ACDC, etc.) that had notes published or were discussed within the past 7 days.
+                  * **Primarily source these summaries from posts by Andrew B Coathup (`@abcoathup`) on Ethereum Magicians (`https://ethereum-magicians.org/u/abcoathup/activity`).** Check this source for any new call notes posted within the 7-day window.
+                  * For each call summarized, **you MUST include a direct link to the specific Ethereum Magicians post** (e.g., `https://ethereum-magicians.org/t/acdc-call-123-date/xxxxx`).
+                  * The structure and level of detail for each call's summary should emulate how "Week in Ethereum News" typically presents these (e.g., highlighting key discussion points, decisions, and action items, often with sub-bullets for different topics discussed in the call).
+                  * **Crucially, verify the date of the call itself and any critical details (like EIPs discussed or major decisions) against official sources (e.g., meeting agendas/notes on `https://github.com/ethereum/pm`) even when using summaries from Ethereum Magicians. Do NOT report calls or summaries of calls that occurred outside the specified 7-day window. If no relevant calls were summarized by `@abcoathup` or had official notes published this week, state that clearly or omit this section.**
+              * **Primary Sources for this Section:**
+                  * Call Summaries: Posts by `@abcoathup` on `https://ethereum-magicians.org/u/abcoathup/activity`.
+                  * Verification & Official Agendas/Notes: `https://github.com/ethereum/pm`.
+              * **Keywords for Search (Contextual, focus on checking primary sources first):** "Ethereum AllCoreDevs summary," "ACDE notes," "ACDC notes," "Ethereum core dev call."
             
             **2. Pectra (Prague + Electra) Upgrade (or current named mainnet upgrade)**
             
-              * **Content:** Report specific progress, new EIPs considered/included, client readiness updates, testnet news, or important discussions related to the Pectra upgrade (or the current primary upcoming mainnet upgrade by its name) from the past 7 days. Focus should include updates on **devnets, specific testnet activities, dedicated Pectra testing calls,** and client compatibility related to Pectra from the past 7 days.
-              * **Keywords for Search:** "Pectra upgrade news," "[current\_upgrade\_name] Ethereum," "Ethereum network upgrade," "Pectra testnet," "Pectra testing call."
+              * **Content:** Report specific progress, new EIPs considered/included (notably **EIP-7600: Pectra Upgrade Meta, see `https://eips.ethereum.org/EIPS/eip-7600`**), client readiness updates, testnet news, or important discussions related to the Pectra upgrade (or the current primary upcoming mainnet upgrade by its name) from the past 7 days. Focus should include updates on **devnets, specific testnet activities, dedicated Pectra testing calls,** and client compatibility related to Pectra from the past 7 days.
+              * **Keywords for Search:** "Pectra upgrade news," "[current\_upgrade\_name] Ethereum," "Ethereum network upgrade," "Pectra testnet," "Pectra testing call," "EIP-7600."
             
             **3. Fusaka (Osaka + Fulu) Upgrade (or next future named upgrade after Pectra)**
             
@@ -80,7 +92,6 @@ jobs:
               * **Content:** Highlight significant research findings or discussions (e.g., from ethresear.ch) that directly impact protocol direction or understanding, if published or heavily discussed in the past 7 days, and not covered under specific upgrade or L1 sections.
               * **Keywords for Search:** "ethresear.ch [relevant topic]," "Ethereum research paper."
             
-            -----
             
             ## **Other Standard Newsletter Sections:** *(The following sections, like all sections in this newsletter, should only be included if relevant news from the past 7 days exists for them. Each item under these headings must be a bullet point.)*
             
@@ -110,12 +121,15 @@ jobs:
             
             **10. EIPs/Standards**
             
-              * **Content:** Summarize newly introduced Ethereum Improvement Proposals (EIPs) and application-level standards (ERCs), or those with significant status changes or active discussions in the past 7 days. Each item should be a bullet point.
+              * **Content:** Summarize newly introduced Ethereum Improvement Proposals (EIPs) and application-level standards (ERCs), or those with significant status changes or active discussions in the past 7 days. Information **MUST be primarily sourced by monitoring activity (new PRs for Drafts, merged PRs for status changes) directly from the official `https://github.com/Ethereum/EIPs` repository.** Use `https://ethereum-magicians.org` for supplementary discussion context. Each item should be a bullet point.
               * **Focus:**
-                  * Newly proposed EIPs or ERCs.
-                  * EIPs/ERCs moving to "Review," "Last Call," "Final," or "Stagnant" status.
-                  * Significant community discussions, debates, or calls for feedback on specific proposals, especially via forums like Ethereum Magicians.
+                  * New EIPs/ERCs (identified by merged Draft PRs in `Ethereum/EIPs`).
+                  * EIPs/ERCs moving to "Review," "Last Call," "Final," or "Stagnant" (identified by merged PRs reflecting these status changes in `Ethereum/EIPs`).
+                  * Significant community discussions (link to `ethereum-magicians.org` or relevant GitHub Issues/PRs within the EIPs repo).
                   * Breakdowns or explanations of important or complex EIPs/ERCs.
+              * **Primary Sources for this Section:**
+                  * `https://github.com/Ethereum/EIPs` (for new proposals, status changes via merged PRs, and official EIP content).
+                  * `https://ethereum-magicians.org` (for community discussions and context around EIPs/ERCs).
               * **Keywords for Search (Starting Points):** "New EIP," "ERC [number] update," "Ethereum Improvement Proposal discussion," "Ethereum Magicians EIP."
             
             **11. Developer Stuff**
@@ -189,7 +203,7 @@ jobs:
                   * DeFi TVL (Total Value Locked) changes and trends.
                   * Staking statistics (e.g., total ETH staked, validator count, changes over the week).
                   * Relevant NFT market statistics (e.g., sales volume, unique buyers).
-              * **Keywords for Search (Starting Points):\_** "Ethereum gas fees," "ETH price chart," "Ethereum on-chain data Dune," "DeFi TVL," "Ethereum staking stats."
+              * **Keywords for Search (Starting Points):** "Ethereum gas fees," "ETH price chart," "Ethereum on-chain data Dune," "DeFi TVL," "Ethereum staking stats."
             
             **18. Miscellaneous**
             
@@ -199,13 +213,13 @@ jobs:
                   * Significant community discussions on social media or forums.
                   * Educational content explaining complex Ethereum concepts.
                   * Links to useful tools or resources not covered elsewhere.
-              * **Keywords for Search (Starting Points):\_** "Ethereum community discussion," "[Influencer Name] Ethereum blog/podcast," "Ethereum explained."
+              * **Keywords for Search (Starting Points):** "Ethereum community discussion," "[Influencer Name] Ethereum blog/podcast," "Ethereum explained."
             
             **19. Job Postings**
             
               * **Content:** List job opportunities within the Ethereum ecosystem, ideally posted or highlighted in the past 7 days. Each item should be a bullet point.
               * **Focus:** Roles from various companies and projects in the space.
-              * **Keywords for Search (Starting Points):\_** "Ethereum jobs," "blockchain developer jobs," "crypto jobs [specific role]."
+              * **Keywords for Search (Starting Points):** "Ethereum jobs," "blockchain developer jobs," "crypto jobs [specific role]."
             
             **20. Upcoming Dates of Note**
             
@@ -213,12 +227,21 @@ jobs:
               * **Focus:**
                   * Events scheduled for the next few weeks/months.
                   * Important deadlines for grant applications, EIP comments, testnet participation, calls for papers.
-              * **Keywords for Search (Starting Points):\_** "Ethereum conference," "Devcon," "ETHGlobal hackathon," "blockchain events calendar."
+              * **Keywords for Search (Starting Points):** "Ethereum conference," "Devcon," "ETHGlobal hackathon," "blockchain events calendar."
             
             **General AI Instructions:**
             
               * **Strict Date Adherence:** All reported news, updates, and highlights **MUST originate from events, publications, or data released strictly within the specified 7-day period.** No exceptions. If an event is recurring, only report on the instance that happened in the past 7 days.
-              * **Primary Sources:** Prioritize information from official sources such as `blog.ethereum.org`, the `ethereum/pm GitHub` repository (for core dev meeting notes), `ethresear.ch` (for research), `clientdiversity.org` (for staking client data), and `ethereum-magicians.org` (for EIP discussions).
+              * **Primary Information Sources & Verification:**
+                  * **Core Ethereum Development & Discussion (Highest Priority):** Your primary sources for core protocol developments, EIP discussions, research, and official meeting notes MUST be:
+                      * The official Ethereum GitHub organization: `https://github.com/ethereum` (especially `https://github.com/ethereum/pm` for core developer meeting agendas/notes, and `https://github.com/Ethereum/EIPs` for EIP/ERC proposals and status).
+                      * Ethereum Magicians forum: `https://ethereum-magicians.org/` (for EIP/ERC discussions and community proposals).
+                      * ETHResearch forum: `https://ethresear.ch/` (for research discussions).
+                  * **Other Key Official & Specialized Sources:**
+                      * **Official Announcements:** `blog.ethereum.org`.
+                      * **Core Dev Call Summaries (Specific Author):** Posts by `@abcoathup` on `https://ethereum-magicians.org/u/abcoathup/activity` (cross-verify call dates and key decisions with `ethereum/pm`).
+                      * **Client Diversity Data:** `clientdiversity.org`.
+                  * Actively seek out these primary sources for relevant sections. While secondary sources (reputable news outlets, project blogs) can be used for broader ecosystem news, core technical details, official stances, and dates of events MUST be grounded in and verified against these primary sources.
               * **Secondary Sources:** Supplement with reputable crypto news outlets (e.g., The Defiant, CoinDesk, Decrypt, Blockworks, Rekt News for security), project blogs, and well-known community figures. Critically evaluate the reliability of secondary sources.
               * **Summarization:** For each item, provide a concise summary (typically 1-3 sentences). Capture the essence of the news and its significance.
               * **Linking:** **Crucially, include a direct link to the original source for each piece of news.**
@@ -236,7 +259,8 @@ jobs:
               * **"Week in Ethereum News" Style:** **This is paramount.** Emulate the exact section titling, dynamic inclusion of all sections based on weekly content, general style, depth, and comprehensiveness of a typical "Week in Ethereum News" issue. The AI should "read" several recent issues to internalize the style, tone, and level of detail.
             
             **Output Format:**
-            The final output should be a well-formatted newsletter in Markdown, suitable for publication, with all original links and references preserved. Start with the "Highlight of the Week" section. All list items must use bullet points.    
+            The final output should be a well-formatted newsletter in Markdown, suitable for publication, with all original links and references preserved. Start with the "Highlight of the Week" section. All list items must use bullet points.
+            
 
             You are provided with structured context data:
             {{context}}
@@ -246,6 +270,19 @@ jobs:
             
           context: scripts/prompt_context.md
           llm_api_key: ${{ secrets.LLM_API_KEY }}
+      
+      - name: Debug Workspace Contents Before Artifact Upload
+        run: |
+          echo "Current working directory: $(pwd)"
+          echo "--- Listing GITHUB_WORKSPACE (${{ github.workspace }}) root contents (ls -la): ---"
+          ls -la ${{ github.workspace }}
+          echo "--- Recursively listing GITHUB_WORKSPACE contents (ls -laR) - showing all files in all subdirectories: ---"
+          ls -laR ${{ github.workspace }}
+          echo "--- Trying to find 'newsletter_*.md' files in GITHUB_WORKSPACE specifically: ---"
+          find ${{ github.workspace }} -name "newsletter_*.md" -ls
+          echo "--- Specifically checking for the exact file the AI claimed to save: ---"
+          ls -la ${{ github.workspace }}/newsletter_${{ env.TIMESTAMP }}.md || echo "Exact file ${{ github.workspace }}/newsletter_${{ env.TIMESTAMP }}.md not found by ls"
+          echo "--- End of Debug Workspace Contents ---"
 
       - name: Upload Summary Report
         uses: actions/upload-artifact@v4
@@ -270,14 +307,14 @@ jobs:
           TIMESTAMP: ${{ env.TIMESTAMP }}
         run: |
           # Find the latest generated newsletter file
-          ls -la  # Add this to log the current directory and all files
+          ls -la  # 🔍 Add this to log the current directory and all files
 
           FILE=$(ls newsletter_*.md 2>/dev/null | tail -n 1)
 
           if [ -z "$FILE" ]; then
-            echo "No newsletter file found in current directory."
+            echo "❌ No newsletter file found in current directory."
             exit 1
           fi
 
-          echo "Using $FILE"
+          echo "✅ Using $FILE"
           python scripts/send_newsletter.py "$FILE"
