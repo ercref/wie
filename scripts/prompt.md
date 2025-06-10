@@ -1,8 +1,8 @@
-**Objective:** Create a comprehensive and engaging newsletter summarizing key developments, news, and discussions within the Ethereum ecosystem, structured **exactly like a typical "Week in Ethereum News" issue**.
-            
+**Objective:** Create a comprehensive and engaging newsletter summarizing key developments, news, and discussions within the Ethereum ecosystem, structured **exactly like a typical "Week in Ethereum News" issue**.Add commentMore actions
+
 **CRITICAL OVERARCHING RULE: This newsletter MUST ONLY contain information, news, and updates that have occurred or were published within the strict 7-day period concluding on the date of execution (e.g., if executed on May 25, 2025, it covers Monday, May 19, 2025, to Sunday, May 25, 2025, inclusive). Furthermore, if any defined section or category below does not have any relevant updates from this 7-day period, that entire section or category MUST be omitted from the final newsletter. Do not include sections with no new information.**
 
-The newsletter must cover **only the 7-day period concluding on the date of execution** (e.g., if executed on May 25, 2025, it covers Monday, May 19, 2025, to Sunday, May 25, 2025, inclusive). The AI must emphasize clarity, **absolute factual accuracy, verifiable timeliness (all information strictly from the past 7 days unless intrinsically referencing future events based on current announcements)**, relevance, and use its judgment to find and prioritize the most impactful information within this exact structure, ensuring all items are bullet-pointed under their respective headings. **This newsletter is for a high-stakes audience; errors or outdated information are unacceptable.**
+The newsletter must cover **only the 7-day period concluding on the date of execution**. The AI must emphasize clarity, **absolute factual accuracy, verifiable timeliness (all information strictly from the past 7 days unless intrinsically referencing future events based on current announcements)**, relevance, and use its judgment to find and prioritize the most impactful information within this exact structure, ensuring all items are bullet-pointed under their respective headings. **This newsletter is for a high-stakes audience; errors or outdated information are unacceptable.**
 
 **Newsletter Structure and Content Guidelines (Emulating "Week in Ethereum News"):**
 
@@ -59,8 +59,14 @@ The newsletter must cover **only the 7-day period concluding on the date of exec
 
 **7. Centralization watch: threatening the value of your ETH**
 
-  * **Content:** Provide updates and analysis related to Ethereum centralization risks, focusing on validator client diversity, liquid staking derivative dominance, MEV concentration (e.g., relay/builder centralization), and other relevant factors from the past 7 days that could impact network decentralization. **Crucially, any data or statistics on client diversity (execution or consensus) MUST be sourced from or cross-verified with `clientdiversity.org` for the current period. Report the latest available data and specify its 'as of' date from the source.** Each item should be a bullet point.
-  * **Keywords for Search (Starting Points):** "Ethereum staking news," "validator updates," "MEV-Boost," "liquid staking," "client diversity Ethereum," "DVT Ethereum," "Ethereum centralization risks," "clientdiversity.org."
+  * **Content:** Provide updates and analysis related to Ethereum centralization risks. Each item should be a bullet point.
+  * **Focus:**
+    * **Lido&#39;s Staking Share:** Find the &#39;Lido Share&#39; percentage from the context data you loaded. **You MUST format this into a single, specific sentence like this:** &quot;🚨 [Lido at XX.X%](https://dune.com/hildobby/eth2-staking), still too close to the [33.3% threshold](https://notes.ethereum.org/@djrtwo/risks-of-lsd).&quot;
+    * * **Client Diversity Summary:** Briefly state the approximate share of the top 1-2 execution and consensus clients using the data from the context.
+    * **Mandatory Statement &amp; Formatting:**
+      * **After presenting the client diversity summary, you MUST include this exact bullet point:** &quot;* Any client bug over 33.3% could mean loss of finality.&quot;
+      * **Always include this exact bullet point:** &quot;* Better [geographic diversity](https://nodewatch.io/) is optimal, particularly outside of North America &amp; Europe.&quot;
+  * **Sourcing Client Percentages:** For any specific client diversity percentages mentioned, YOU MUST use the data provided in the &#39;Manually Updated Client Diversity Data&#39; section which you have loaded from `scripts/prompt_context.md`. Attribute the source as specified in your context data. Do not attempt to scrape this data from the web yourself.
 
 **8. Client Releases**
 
@@ -222,6 +228,3 @@ The newsletter must cover **only the 7-day period concluding on the date of exec
 
 **Output Format:**
 The final output should be a well-formatted newsletter in Markdown, suitable for publication, with all original links and references preserved. Start with the "Highlight of the Week" section. All list items must use bullet points.
-
-
-
