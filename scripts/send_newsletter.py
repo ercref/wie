@@ -15,7 +15,7 @@ with open(filename, "r") as file:
 html_content = markdown2.markdown(markdown_text)
 
 params = {
-    "from": "Ethereum Weekly <226angelli@gmail.com>",
+    "from": "Ethereum Weekly <Week-In-Ethereum@wie.ercref.org>",
     "to": ["new-week-in-ethereum@googlegroups.com"],
     "subject": "🚀 Weekly Ethereum Newsletter",
     "html": html_content,
