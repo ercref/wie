@@ -16,7 +16,10 @@ html_content = markdown2.markdown(markdown_text)
 
 params = {
     "from": "Ethereum Weekly <Week-In-Ethereum@wie.ercref.org>",
-    "to": ["new-week-in-ethereum@googlegroups.com"],
+    "to": [
+        "zzn@zzn.im",
+        "226angelli@gmail.com"
+    ],
     "subject": "🚀 Weekly Ethereum Newsletter",
     "html": html_content,
 }
