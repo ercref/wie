@@ -23,75 +23,104 @@ jobs:
       - name: Generate timestamp
         id: generate-timestamp
         run: echo "TIMESTAMP=$(date +'%Y%m%d')" >> $GITHUB_ENV
-      
-      - name: Install dependencies
+
+      - name: Install Python and requirements
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      
+
       - name: Build Prompt Context (last 7 days)
         run: python scripts/build_prompt_context.py
 
-      - name: Print context contents
+      - name: Print context
         run: cat scripts/prompt_context.md
 
-      - name: Generate Ethereum Newsletter via OpenHands
+      - name: Generate Ethereum Newsletter Part 1 via OpenHands
         uses: xinbenlv/openhands-action@v1.0.1-rc3
         with:
           prompt: >- 
-            Read scripts/prompt.md from the root of the repository and use 
+            Read prompts/prompt_1.md from the root of the repository and use 
+            it to generate a newsletter.
+            Use date range: past 7 days
+            Save the result to: newsletter1_${{ env.TIMESTAMP }}.md
+
+          llm_api_key: ${{ secrets.LLM_API_KEY }}
+          
+      - name: Generate Ethereum Newsletter Part 2 via OpenHands
+        uses: xinbenlv/openhands-action@v1.0.1-rc3
+        with:
+          prompt: >- 
+            Read prompts/prompt_2.md from the root of the repository and use 
+            it to generate a newsletter.
+            Use date range: past 7 days
+            Save the result to: newsletter2_${{ env.TIMESTAMP }}.md
+
+          llm_api_key: ${{ secrets.LLM_API_KEY }}
+
+      - name: Generate Ethereum Newsletter Part 3 via OpenHands
+        uses: xinbenlv/openhands-action@v1.0.1-rc3
+        with:
+          prompt: >- 
+            Read prompts/prompt_3.md from the root of the repository and use 
             it to generate a newsletter.
             Your structured context data is located at 'scripts/prompt_context.md' in your workspace.
             Please read this file to obtain the structured context data.
             Use date range: past 7 days
-            Save the result to: newsletter_${{ env.TIMESTAMP }}.md
+            Save the result to: newsletter3_${{ env.TIMESTAMP }}.md
   
           llm_api_key: ${{ secrets.LLM_API_KEY }}
-      
-      - name: Debug Workspace Contents Before Artifact Upload
-        run: |
-          echo "Current working directory: $(pwd)"
-          echo "--- Listing GITHUB_WORKSPACE (${{ github.workspace }}) root contents (ls -la): ---"
-          ls -la ${{ github.workspace }}
-          echo "--- Recursively listing GITHUB_WORKSPACE contents (ls -laR) - showing all files in all subdirectories: ---"
-          ls -laR ${{ github.workspace }}
-          echo "--- Trying to find 'newsletter_*.md' files in GITHUB_WORKSPACE specifically: ---"
-          find ${{ github.workspace }} -name "newsletter_*.md" -ls
-          echo "--- Specifically checking for the exact file the AI claimed to save: ---"
-          ls -la ${{ github.workspace }}/newsletter_${{ env.TIMESTAMP }}.md || echo "Exact file ${{ github.workspace }}/newsletter_${{ env.TIMESTAMP }}.md not found by ls"
-          echo "--- End of Debug Workspace Contents ---"
 
-      - name: Upload Summary Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: weekly-ethereum-newsletter
-          path: newsletter_*.md
-          retention-days: 14
-          if-no-files-found: warn
+      - name: Combine Newsletter Sections
+        run: |
+          sudo chown -R $(id -u):$(id -g) ${{ github.workspace }}
+          
+          FINAL_FILE="${{ github.workspace }}/final_newsletter.md"
+          PART1_FILE="${{ github.workspace }}/newsletter1_${{ env.TIMESTAMP }}.md"
+          PART2_FILE="${{ github.workspace }}/newsletter2_${{ env.TIMESTAMP }}.md"
+          PART3_FILE="${{ github.workspace }}/newsletter3_${{ env.TIMESTAMP }}.md"
+          
+          TIMESTAMP_HEADER=$(date -u +"%B %d, %Y")
+
+          echo "## Week in Ethereum News" > "$FINAL_FILE"
+          echo "### $TIMESTAMP_HEADER" >> "$FINAL_FILE"
+          echo "" >> "$FINAL_FILE"
+
+          if [ -f "$PART1_FILE" ]; then
+            echo "Appending Part 1..."
+            cat "$PART1_FILE" >> "$FINAL_FILE"
+            echo "" >> "$FINAL_FILE"
+          fi
+          if [ -f "$PART2_FILE" ]; then
+            echo "Appending Part 2..."
+            cat "$PART2_FILE" >> "$FINAL_FILE"
+            echo "" >> "$FINAL_FILE"
+          fi
+          if [ -f "$PART3_FILE" ]; then
+            echo "Appending Part 3..."
+            cat "$PART3_FILE" >> "$FINAL_FILE"
+            echo "" >> "$FINAL_FILE"
+          fi
+          
+          echo "--- Final Combined Newsletter ---"
+          cat "$FINAL_FILE"
+          echo "---------------------------------"
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          
-      - name: Install dependencies round 2
+
+      - name: Install resend and markdown2
         run: pip install resend markdown2
 
-      - name: Send Ethereum Newsletter via Resend
-        env:
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          NEWSLETTER_RECIPIENT: ${{ secrets.NEWSLETTER_RECIPIENT }}
-          TIMESTAMP: ${{ env.TIMESTAMP }}
+      - name: Send Newsletter via Resend
         run: |
-          # Find the latest generated newsletter file
-          ls -la  # 🔍 Add this to log the current directory and all files
-
-          FILE=$(ls newsletter_*.md 2>/dev/null | tail -n 1)
-
-          if [ -z "$FILE" ]; then
-            echo "❌ No newsletter file found in current directory."
+          if [ $(wc -l < "${{ github.workspace }}/final_newsletter.md") -lt 5 ]; then
+            echo "::error::Final newsletter file is empty because generation steps failed after all retries. Halting."
             exit 1
           fi
-
-          echo "✅ Using $FILE"
-          python scripts/send_newsletter.py "$FILE"
+          pip install markdown2 resend
+          python scripts/send_newsletter.py "${{ github.workspace }}/final_newsletter.md"
+        env:
+          NEWSLETTER_RECIPIENT: ${{ secrets.NEWSLETTER_RECIPIENT }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
