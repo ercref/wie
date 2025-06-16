@@ -13,12 +13,12 @@ HTTP_HEADERS = {
 MANUAL_CLIENT_DIVERSITY_DATA = {
     "section_title": "Manually Updated Client Diversity Data",
     "source_checked": "clientdiversity.org (verified via execution-clients.com and Miga Labs)",
-    "date_data_pulled": "2025-06-10", 
-    "data_as_of_date": "2025-06-10", 
+    "date_data_pulled": "2025-06-15",  # <-- UPDATE THIS WEEKLY (date you got the data)
+    "data_as_of_date": "2025-06-15",  # <-- UPDATE THIS WEEKLY (date the data source refers to, if available)
     "key_staking_entity_share": {
         "entity_name": "Lido",
-        "share_percentage": "25.68%", 
-        "source_link": "https://dune.com/hildobby/eth2-staking"  
+        "share_percentage": "25.68%",      # <-- UPDATE THIS WEEKLY
+        "source_link": "https://dune.com/hildobby/eth2-staking"  # <-- UPDATE THIS LINK IF NEEDED
     },
     "consensus_clients_note": "Sourced from Miga Labs via clientdiversity.org",
     "consensus_clients": [
