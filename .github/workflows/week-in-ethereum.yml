@@ -2,7 +2,6 @@ name: Weekly Ethereum Newsletter
 
 on:
   schedule:
-    # Every Monday 12:00 UTC
     - cron: '0 15 * * 5'
   push:
     branches:
