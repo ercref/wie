@@ -129,14 +129,11 @@ jobs:
           mv final_newsletter_output/*.md website/${{ steps.combine.outputs.final_path }}
           
       - name: Send to Buttondown as a Draft 📬
+        # This step doesn't need to be changed
         env:
           BUTTONDOWN_API_KEY: ${{ secrets.BUTTONDOWN_API_KEY }}
         run: |
-          # Read the final markdown and escape it for the JSON payload
-          # The 'jq' tool is pre-installed on GitHub's runners
-          BODY_CONTENT=$(jq -Rs . "${{ github.workspace }}/final_newsletter.md")
-          
-          # API call to create a draft email in Buttondown
+          BODY_CONTENT=$(jq -Rs . "${{ steps.combine.outputs.final_path }}")
           curl --request POST \
             --url https://api.buttondown.email/v1/emails \
             --header "Authorization: Token $BUTTONDOWN_API_KEY" \
@@ -145,6 +142,7 @@ jobs:
               "subject": "${{ steps.combine.outputs.subject }}",
               "body": '"$BODY_CONTENT"'
             }'
+            
       - name: Commit and Push to Website Repo 🚀
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
