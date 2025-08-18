@@ -2,6 +2,7 @@ name: Weekly Ethereum Newsletter
 
 on:
   schedule:
+  # Triggers at 15:00 UTC every Friday (8:00 AM PDT)
     - cron: '0 15 * * 5'
   push:
     branches:
@@ -11,115 +12,138 @@ on:
       - main
   workflow_dispatch:
 
-jobs:
-  generate-and-send:
-    runs-on: ubuntu-latest
+permissions:
+  contents: write
 
+jobs:
+  build_context:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Generate timestamp
-        id: generate-timestamp
-        run: echo "TIMESTAMP=$(date +'%Y%m%d')" >> $GITHUB_ENV
-
+        
       - name: Install Python and requirements
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-
+          
       - name: Build Prompt Context (last 7 days)
         run: python scripts/build_prompt_context.py
-
+        
       - name: Print context
         run: cat scripts/prompt_context.md
 
-      - name: Generate Ethereum Newsletter Part 1 via OpenHands
-        uses: xinbenlv/openhands-action@v1.0.1-rc3
+      - name: Upload context file for other jobs
+        uses: actions/upload-artifact@v4
         with:
-          prompt: >- 
-            Read prompts/prompt_1.md from the root of the repository and use 
-            it to generate a newsletter.
-            Use date range: past 7 days
-            Save the result to: newsletter1_${{ env.TIMESTAMP }}.md
+          name: context-data
+          path: scripts/prompt_context.md
 
-          llm_api_key: ${{ secrets.LLM_API_KEY }}
-          
-      - name: Generate Ethereum Newsletter Part 2 via OpenHands
-        uses: xinbenlv/openhands-action@v1.0.1-rc3
-        with:
-          prompt: >- 
-            Read prompts/prompt_2.md from the root of the repository and use 
-            it to generate a newsletter.
-            Use date range: past 7 days
-            Save the result to: newsletter2_${{ env.TIMESTAMP }}.md
+  generate_part_1:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    needs: build_context
+    uses: ./.github/workflows/run-single-section.yml
+    with:
+      part_number: 1
+    secrets: inherit # This correctly passes your LLM_API_KEY
 
-          llm_api_key: ${{ secrets.LLM_API_KEY }}
+  generate_part_2:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    needs: generate_part_1 
+    uses: ./.github/workflows/run-single-section.yml
+    with:
+      part_number: 2
+    secrets: inherit
 
-      - name: Generate Ethereum Newsletter Part 3 via OpenHands
-        uses: xinbenlv/openhands-action@v1.0.1-rc3
-        with:
-          prompt: >- 
-            Read prompts/prompt_3.md from the root of the repository and use 
-            it to generate a newsletter.
-            Your structured context data is located at 'scripts/prompt_context.md' in your workspace.
-            Please read this file to obtain the structured context data.
-            Use date range: past 7 days
-            Save the result to: newsletter3_${{ env.TIMESTAMP }}.md
-  
-          llm_api_key: ${{ secrets.LLM_API_KEY }}
+  generate_part_3:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    needs: generate_part_2
+    uses: ./.github/workflows/run-single-section.yml
+    with:
+      part_number: 3
+      context_needed: true
+    secrets: inherit
 
-      - name: Combine Newsletter Sections
-        run: |
-          sudo chown -R $(id -u):$(id -g) ${{ github.workspace }}
-          
-          FINAL_FILE="${{ github.workspace }}/final_newsletter.md"
-          PART1_FILE="${{ github.workspace }}/newsletter1_${{ env.TIMESTAMP }}.md"
-          PART2_FILE="${{ github.workspace }}/newsletter2_${{ env.TIMESTAMP }}.md"
-          PART3_FILE="${{ github.workspace }}/newsletter3_${{ env.TIMESTAMP }}.md"
-          
-          TIMESTAMP_HEADER=$(date -u +"%B %d, %Y")
-
-          echo "## Week in Ethereum News" > "$FINAL_FILE"
-          echo "### $TIMESTAMP_HEADER" >> "$FINAL_FILE"
-          echo "" >> "$FINAL_FILE"
-
-          if [ -f "$PART1_FILE" ]; then
-            echo "Appending Part 1..."
-            cat "$PART1_FILE" >> "$FINAL_FILE"
-            echo "" >> "$FINAL_FILE"
-          fi
-          if [ -f "$PART2_FILE" ]; then
-            echo "Appending Part 2..."
-            cat "$PART2_FILE" >> "$FINAL_FILE"
-            echo "" >> "$FINAL_FILE"
-          fi
-          if [ -f "$PART3_FILE" ]; then
-            echo "Appending Part 3..."
-            cat "$PART3_FILE" >> "$FINAL_FILE"
-            echo "" >> "$FINAL_FILE"
-          fi
-          
-          echo "--- Final Combined Newsletter ---"
-          cat "$FINAL_FILE"
-          echo "---------------------------------"
-
+  combine_and_send:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    needs: generate_part_3
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.x'
+      - name: Download all partial newsletter files
+        uses: actions/download-artifact@v4
+        with:
+          path: final_parts # Download all artifacts to this directory
 
-      - name: Install resend and markdown2
-        run: pip install resend markdown2
-
-      - name: Send Newsletter via Resend
+      - name: Combine and Stage Newsletter
+        id: combine
         run: |
-          if [ $(wc -l < "${{ github.workspace }}/final_newsletter.md") -lt 5 ]; then
-            echo "::error::Final newsletter file is empty because generation steps failed after all retries. Halting."
-            exit 1
-          fi
-          pip install markdown2 resend
-          python scripts/send_newsletter.py "${{ github.workspace }}/final_newsletter.md"
+          # Ensure the target directory from your screenshot exists
+          mkdir -p content/blog
+
+          # Use the YYYYMMDD format for the filename, as requested
+          TIMESTAMP_FILE=$(date -u +"%Y%m%d")
+          TIMESTAMP_PRETTY=$(date -u +"%B %d, %Y")
+          SUBJECT="Week in Ethereum News - $TIMESTAMP_PRETTY"
+
+          # Define the final path to match your site's structure
+          FINAL_PATH="content/blog/${TIMESTAMP_FILE}.md"
+
+          # Combine the files into a temporary location first
+          TEMP_FILE="${{ github.workspace }}/final_newsletter.md"
+          echo "## Week in Ethereum News" > "$TEMP_FILE"
+          echo "### $TIMESTAMP_PRETTY" >> "$TEMP_FILE"
+          echo "" >> "$TEMP_FILE"
+          
+          for part_file in $(find final_parts/ -name "part_*_output.md" | sort); do
+            cat "$part_file" >> "$TEMP_FILE"
+            echo -e "\n\n" >> "$TEMP_FILE"
+          done
+          
+          # Move the final combined file to its permanent home
+          mv "$TEMP_FILE" "$FINAL_PATH"
+
+          echo "--- Final Newsletter created at $FINAL_PATH ---"
+          cat "$FINAL_PATH"
+          
+          # Set outputs for the next steps
+          echo "subject=$SUBJECT" >> "$GITHUB_OUTPUT"
+          echo "final_path=$FINAL_PATH" >> "$GITHUB_OUTPUT"
+          
+      - name: Send to Buttondown as a Draft 📬
         env:
-          NEWSLETTER_RECIPIENT: ${{ secrets.NEWSLETTER_RECIPIENT }}
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          BUTTONDOWN_API_KEY: ${{ secrets.BUTTONDOWN_API_KEY }}
+        run: |
+          # Read the final markdown and escape it for the JSON payload
+          # The 'jq' tool is pre-installed on GitHub's runners
+          BODY_CONTENT=$(jq -Rs . "${{ github.workspace }}/final_newsletter.md")
+          
+          # API call to create a draft email in Buttondown
+          curl --request POST \
+            --url https://api.buttondown.email/v1/emails \
+            --header "Authorization: Token $BUTTONDOWN_API_KEY" \
+            --header 'Content-Type: application/json' \
+            --data '{
+              "subject": "${{ steps.combine.outputs.subject }}",
+              "body": '"$BODY_CONTENT"'
+            }'
+      - name: Commit and Push Newsletter 🚀
+        # This step automatically uses the correct FINAL_PATH from the previous step
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "docs: Publish newsletter for ${{ steps.combine.outputs.subject }} [skip ci]"
+          file_pattern: "${{ steps.combine.outputs.final_path }}"
+          commit_user_name: GitHub Actions Bot
+          commit_user_email: actions@github.com
+          
+      - name: Upload Final Newsletter as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-newsletter-${{ github.run_id }}
+          path: ${{ github.workspace }}/final_newsletter.md
