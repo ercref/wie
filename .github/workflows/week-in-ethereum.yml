@@ -66,36 +66,27 @@ jobs:
     secrets: inherit
 
   combine_and_send:
-    # This 'if' condition is still important
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     needs: generate_part_3
     runs-on: ubuntu-latest
     steps:
-      # This job no longer needs to check out its own code.
-      # It only needs the artifacts.
-          
       - name: Download all partial newsletter files
         uses: actions/download-artifact@v4
         with:
           path: final_parts
 
-      # This is the step with the key changes 👇
       - name: Combine and Stage Newsletter
         id: combine
         run: |
-          # The file is created here, but NOT in a git repository yet.
-          # It's just sitting in a temporary folder.
           mkdir -p final_newsletter_output
 
           TIMESTAMP_FILE=$(date -u +"%Y%m%d")
           TIMESTAMP_PRETTY=$(date -u +"%B %d, %Y")
           SUBJECT="Week in Ethereum News - $TIMESTAMP_PRETTY"
-
-          # Define the final path where the file will eventually go in the website repo
-          FINAL_PATH_IN_REPO="content/blog/${TIMESTAMP_FILE}.md"
           
-          # Combine the parts into a single file in the temp folder
+          FINAL_PATH_IN_REPO="content/blog/${TIMESTAMP_FILE}.md"
           TEMP_FILE="final_newsletter_output/${TIMESTAMP_FILE}.md"
+
           echo "## Week in Ethereum News" > "$TEMP_FILE"
           echo "### $TIMESTAMP_PRETTY" >> "$TEMP_FILE"
           echo "" >> "$TEMP_FILE"
@@ -111,12 +102,15 @@ jobs:
           # Set outputs for the next steps
           echo "subject=$SUBJECT" >> "$GITHUB_OUTPUT"
           echo "final_path=$FINAL_PATH_IN_REPO" >> "$GITHUB_OUTPUT"
-      
+          # NEW 👇: Add an output for the temporary file's path
+          echo "temp_file_path=$TEMP_FILE" >> "$GITHUB_OUTPUT"
+
       - name: Send to Buttondown as a Draft 📬
         env:
           BUTTONDOWN_API_KEY: ${{ secrets.BUTTONDOWN_API_KEY }}
         run: |
-          BODY_CONTENT=$(jq -Rs . "${{ steps.combine.outputs.final_path }}")
+          # CHANGED 👇: Use the new 'temp_file_path' output to read from the correct location
+          BODY_CONTENT=$(jq -Rs . "${{ steps.combine.outputs.temp_file_path }}")
           curl --request POST \
             --url https://api.buttondown.email/v1/emails \
             --header "Authorization: Token $BUTTONDOWN_API_KEY" \
@@ -125,35 +119,24 @@ jobs:
               "subject": "${{ steps.combine.outputs.subject }}",
               "body": '"$BODY_CONTENT"'
             }'
-          
+            
       - name: Check out website repository
         uses: actions/checkout@v4
         with:
           repository: 'ercref/new-wie-site' 
-          # Use the PAT to get write access
           token: ${{ secrets.GH_PAT }}
-          # Path to clone into. We'll call it 'website'
           path: 'website'
 
       - name: Move newsletter to website repo
         run: |
-          # Create the blog directory inside the checked-out website repo
           mkdir -p website/content/blog
-          # Move the file
+          # This now uses the correct variable for the destination path
           mv final_newsletter_output/*.md website/${{ steps.combine.outputs.final_path }}
           
-            
       - name: Commit and Push to Website Repo 🚀
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          # Tell the action to work inside the 'website' directory
           repository: ./website
           commit_message: "docs: Publish newsletter for ${{ steps.combine.outputs.subject }} [skip ci]"
           commit_user_name: GitHub Actions Bot
           commit_user_email: actions@github.com
-          
-      - name: Upload Final Newsletter as Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: weekly-newsletter-${{ github.run_id }}
-          path: ${{ github.workspace }}/final_newsletter.md
