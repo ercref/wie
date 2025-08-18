@@ -1,0 +1,48 @@
+name: Run Single Newsletter Section
+
+on:
+  workflow_call:
+    inputs:
+      part_number:
+        required: true
+        type: string
+      context_needed:
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      LLM_API_KEY:
+        required: true
+
+jobs:
+  generate_section:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download context file
+        if: ${{ inputs.context_needed == true }}
+        uses: actions/download-artifact@v4
+        with:
+          name: context-data
+          path: scripts
+
+      - name: Generate Ethereum Newsletter Part 1 via OpenHands
+        uses: xinbenlv/openhands-action@v1.0.1-rc3
+        with:
+          prompt: >- 
+            Read prompts/prompt_${{ inputs.part_number }}.md' from the root of the repository and use 
+            it to generate a newsletter.
+            Your structured context data is located at 'scripts/prompt_context.md' in your workspace.
+            ONLY if directly specified, read this file to obtain the structured context data .
+            Use date range: past 7 days
+            Save the result to: part_${{ inputs.part_number }}_output.md
+          llm_api_key: ${{ secrets.LLM_API_KEY }}
+
+      - name: Upload Part ${{ inputs.part_number }} as Artifact
+        # This step will now only succeed if the openhands-action successfully created the file.
+        uses: actions/upload-artifact@v4
+        with:
+          name: part-${{ inputs.part_number }}-output
+          path: ${{ github.workspace }}/part_${{ inputs.part_number }}_output.md
