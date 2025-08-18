@@ -8,7 +8,7 @@ The newsletter must cover **only the 7-day period concluding on the date of exec
 
 ## **Data Driven & General News:** *(The following numbered sections are part of the overall newsletter structure. Like all other sections, they should only be included if relevant news from the past 7 days exists for them. Each item under these headings must be a bullet point.)*
 
-**11. Centralization watch: threatening the value of your ETH**
+**1. Centralization watch: threatening the value of your ETH**
 
   * **Content:** Provide updates and analysis related to Ethereum centralization risks. Each item should be a bullet point.
   * **Focus:**
@@ -21,13 +21,13 @@ The newsletter must cover **only the 7-day period concluding on the date of exec
       * **After presenting the client diversity summary, you MUST include this exact bullet point:** &quot;* Better [geographic diversity](https://nodewatch.io/) is optimal, particularly outside of North America &amp; Europe.&quot;
   * **Sourcing Client Percentages:** For any specific client diversity percentages mentioned, YOU MUST use the data provided in the &#39;Manually Updated Client Diversity Data&#39; section which you have loaded from `scripts/prompt_context.md`. Attribute the source as specified in your context data. Do not attempt to scrape this data from the web yourself.
 
-**12. Client Releases**
+**2. Client Releases**
 
   * **Source of Information:** You must actively browse the web for this information. Your primary sources are the official GitHub release pages for each Ethereum client.
-  * **Content:** Based on releases from the past 7 days, provide a comprehensive list of client updates.
+  * **Content:** Based on releases from the past 7 days, provide a comprehensive list of client updates. Each item should be a bullet point. For each bullet point, embed a source link on the key term or subject.
   * **Output Structure & Requirements:**
       * If and only if there are new Consensus Layer releases, create a bullet point for the subheading: Consensus layer:
-          * Under this, create a bullet point for each new release. Each bullet point MUST include the client name, the version number, and a concise summary of key features or fixes from the release notes (e.g., * Lighthouse v6.0.1: patch for minor issues in v6).
+          * **Under this, create a bullet point for each new release.** Each bullet point MUST include the client name, the version number, and a concise summary of key features or fixes from the release notes (e.g., Lighthouse v6.0.1: patch for minor issues in v6).
       * If and only if there are new Execution Layer releases, create a bullet point for the subheading: Execution layer:
           * Follow the same format as the Consensus layer, providing a detailed bullet point for each release.
   * **Clients to Check (non-exhaustive list):**
@@ -35,53 +35,60 @@ The newsletter must cover **only the 7-day period concluding on the date of exec
       * Execution: Besu, Erigon, Geth, Nethermind, Reth.
   * **Keywords for Search:** "[Client Name] GitHub releases," "Lighthouse release," "Geth release," "Prysm release."
 
-**13. EIPs/Standards**
+**3. EIPs/Standards**
 
-  * **Content:** Summarize newly introduced Ethereum Improvement Proposals (EIPs) and application-level standards (ERCs), or those with significant status changes or active discussions in the past 7 days. Information **MUST be primarily sourced by monitoring activity (new PRs for Drafts, merged PRs for status changes) directly from the official `https://github.com/Ethereum/EIPs` repository.** Use `https://ethereum-magicians.org` for supplementary discussion context. Each item should be a bullet point.
-  * **Focus:**
-      * New EIPs/ERCs (identified by merged Draft PRs in `Ethereum/EIPs`).
-      * EIPs/ERCs moving to "Review," "Last Call," "Final," or "Stagnant" (identified by merged PRs reflecting these status changes in `Ethereum/EIPs`).
-      * Significant community discussions (link to `ethereum-magicians.org` or relevant GitHub Issues/PRs within the EIPs repo).
-      * Breakdowns or explanations of important or complex EIPs/ERCs.
-  * **Primary Sources for this Section:**
-      * `https://github.com/Ethereum/EIPs` (for new proposals, status changes via merged PRs, and official EIP content).
-      * `https://ethereum-magicians.org` (for community discussions and context around EIPs/ERCs).
-  * **Keywords for Search (Starting Points):** "New EIP," "ERC [number] update," "Ethereum Improvement Proposal discussion," "Ethereum Magicians EIP."
+  * **Source of Information:** Only use the information from your structured context data located at 'scripts/prompt_context.md' in your workspace. Do not search the web or use outside sources.
+  * **Content** From the provided context file of EIPs and ERCs, select the 3-5 most significant proposals based on the criteria below. Each item should be a bullet point.
+    * **Selection Mandate:**
+     * Select the top 3-5 most significant EIPs (Core, Interface, etc.).
+     * Select the top 3-5 most significant ERCs (Application-layer).
+    * **Selection Criteria (in order of priority):**
+      * Imminent Action: Included in the next hard fork or in "Last Call" status.
+      * Major Impact: Recently finalized and seeing significant ecosystem adoption.
+      * Active Debate: A Draft or Review proposal with substantial community discussion.
+  * **Output Structure within this Section:**
+      * List the selected proposals under one of the following subheadings:
+        * EIPs (Core, Networking, Interface):
+        * ERCs (Application Layer):
+      * **Format**
+        * For every EIP or ERC listed (whether new or updated), you MUST include its number followed by its official title.
+        * Note any status changes (e.g., moved to Final, Review, etc.) or brief descriptions of the update.
 
-**14. Onchain Stats**
+**4. Onchain Stats**
 
-  * **Content:** Key metrics and notable trends observed on the Ethereum network and its ecosystem, reflecting data from the past 7 days or current stats. Each item should be a bullet point.
-  * **Focus:**
-      * Average gas prices (Gwei) and transaction fee trends; impact of EIP-4844.
-      * ETH price (briefly, e.g., ETH/USD, ETH/BTC ranges or changes over the week).
-      * Network activity (e.g., transaction count, active addresses, contract deployments).
-      * DeFi TVL (Total Value Locked) changes and trends.
-      * Staking statistics (e.g., total ETH staked, validator count, changes over the week).
-      * Relevant NFT market statistics (e.g., sales volume, unique buyers).
-  * **Keywords for Search (Starting Points):** "Ethereum gas fees," "ETH price chart," "Ethereum on-chain data Dune," "DeFi TVL," "Ethereum staking stats."
+  * **Instruction:** Instruction: For this section ONLY, return the following text block verbatim. Do not alter the formatting, spacing, or content in any way. This is a static data block.
+    ```markdown
 
-**15. Enterprise**
+    * Fees (via [ultrasound.money](https://ultrasound.money)):
+        * Gas: 0.2 to 9.5 gwei, 1.0 gwei average; zero net issuance at 20.5 gwei
+        * 2.7k ETH net issuance this week
+    * [ETHUSD](https://www.coingecko.com/en/coins/ethereum): $2507 – $2598, currently $2,582, all time high $4,878
+    * [ETHBTC](https://ratiogang.com/): currently 0.0236 (Flippening at ~0.165)
+    ```
 
-  * **Content:** Updates on how enterprises are using Ethereum technology (public, private, or hybrid), from the past 7 days. This section can be brief or omitted if no significant news. Each item should be a bullet point.
+**5. Enterprise**
+
+  * **Content:** Updates on how enterprises are using Ethereum technology (public, private, or hybrid), from the past 7 days. Each item should be a bullet point. **For each bullet point, YOU MUST embed a source link on the key term or subject.**
   * **Focus:**
       * New enterprise use cases, pilots, or consortia forming around Ethereum.
       * Announcements from organizations like the Enterprise Ethereum Alliance (EEA) or Baseline Protocol.
   * **Keywords for Search (Starting Points):** "Enterprise Ethereum," "blockchain for business," "Baseline Protocol."
 
-**16. Regulation/Business/Tokens**
+**6. Regulation/Business/Tokens**
 
-  * **Content:** News related to cryptocurrency regulation affecting Ethereum globally, significant business adoption, and important token-related developments (excluding price speculation), from the past 7 days. Each item should be a bullet point.
+  * **Content:** News related to cryptocurrency regulation affecting Ethereum globally, significant business adoption, and important token-related developments (excluding price speculation), from the past 7 days. Each item should be a bullet point. **For each bullet point, YOU MUST embed a source link on the key term or subject.**
   * **Focus:**
       * New regulatory proposals, guidelines, or enforcement actions from governments/agencies.
-      * Major legal cases or rulings involving Ethereum, DeFi, or crypto assets.
-      * Significant institutional adoption, investment, or product launches related to Ethereum (e.g., ETFs, custody solutions).
-      * Partnerships between traditional businesses and Ethereum-based projects.
-      * Important news related to token standards, tokenomics of major projects (if not covered elsewhere), or utility of tokens.
-  * **Keywords for Search (Starting Points):** "Ethereum regulation news," "crypto policy," "institutional crypto," "SEC crypto," "[Major Token] news."
+      * Regulatory & SEC Actions: Look for specific actions from regulatory bodies like the SEC, such as Wells notices issued to projects, new lawsuits, or settlements.
+      * Court Rulings & Legal Cases: Report on significant court rulings (e.g., a circuit court decision on a crypto project) or important updates in high-profile legal trials (e.g., trial date changes, plea deals).
+      * Government & Political News: Find news related to high-level political appointments for crypto-related roles or new reports/presentations from government bodies like the US Treasury.
+      * Institutional & Corporate News: Look for announcements of traditional financial institutions (like pension funds) investing in ETH, or major business developments from crypto-native companies, such as layoffs or major funding rounds.
+  * **Formatting:** For every item you report, the key term (e.g., the name of the company, person, or court case) MUST be a direct Markdown link to the source article or document.
+  * **Keywords for Search:** "Ethereum SEC action," "crypto legal ruling," "US Treasury crypto report," "institutional crypto adoption," "MiCA regulation updates," "crypto company layoffs."
 
-**17. Miscellaneous**
+**7. Miscellaneous**
 
-  * **Content:** A collection of other interesting articles, blog posts, podcasts, videos, or discussions from the past 7 days that don't fit neatly into other categories but are relevant and insightful for the Ethereum community. Each item should be a bullet point.
+  * **Content:** A collection of other interesting articles, blog posts, podcasts, videos, or discussions from the past 7 days that don't fit neatly into other categories but are relevant and insightful for the Ethereum community. Each item should be a bullet point. **For each bullet point, YOU MUST embed a source link on the key term or subject.**
   * **Focus:**
       * Thought-provoking opinion pieces or long-form analyses from influential figures.
       * Significant community discussions on social media or forums.
@@ -89,19 +96,19 @@ The newsletter must cover **only the 7-day period concluding on the date of exec
       * Links to useful tools or resources not covered elsewhere.
   * **Keywords for Search (Starting Points):** "Ethereum community discussion," "[Influencer Name] Ethereum blog/podcast," "Ethereum explained."
 
-**18. Job Postings**
+**8. Job Postings**
 
-  * **Content:** List job opportunities within the Ethereum ecosystem, ideally posted or highlighted in the past 7 days. Each item should be a bullet point.
+  * **Content:** List job opportunities within the Ethereum ecosystem, ideally posted or highlighted in the past 7 days. Each item should be a bullet point. For each bullet point, embed a source link on the key term or subject.
   * **Focus:** Roles from various companies and projects in the space.
   * **Keywords for Search (Starting Points):** "Ethereum jobs," "blockchain developer jobs," "crypto jobs [specific role]."
 
-**19. Upcoming Dates of Note**
+**9. Upcoming Dates of Note**
 
-  * **Content:** A list of important upcoming Ethereum-related virtual and in-person events, conferences, workshops, and deadlines. Each item should be a bullet point.
+  * **Content:** A list of important upcoming Ethereum-related virtual and in-person events, conferences, workshops, and deadlines. Each item should be a bullet point. **For each bullet point, YOU MUST first begin with the date(s) of the event then embed a source link on the key term or subject.**
   * **Focus:**
       * Events scheduled for the next few weeks/months.
       * Important deadlines for grant applications, EIP comments, testnet participation, calls for papers.
-  * **Keywords for Search (Starting Points):** "Ethereum conference," "Devcon," "ETHGlobal hackathon," "blockchain events calendar."
+  * **Keywords for Search (Starting Points):** "Ethereum conference," "Devcon," "ETHGlobal hackathon," "blockchain events calendar," "Ethereum application deadlines."
 
 **General AI Instructions:**
 
@@ -131,9 +138,9 @@ The newsletter must cover **only the 7-day period concluding on the date of exec
   * **"Week in Ethereum News" Style:** **This is paramount.** Emulate the exact section titling, dynamic inclusion of all sections based on weekly content, general style, depth, and comprehensiveness of a typical "Week in Ethereum News" issue. The AI should "read" several recent issues to internalize the style, tone, and level of detail.
 
 **Output Format:**
-
   * **General:** The final output should be a well-formatted newsletter in Markdown, suitable for publication, with all original links and references preserved.
   * **Scope:** Your output must ONLY contain the sections listed in this prompt (Centralization watch, Client Releases, EIPs/Standards, Onchain Stats, Regulation/Business/Tokens, Enterprise, Miscellaneous, Job Postings, Upcoming Dates of Note). Do not generate content for any other sections.
   * **Headings:** All section headings MUST be formatted as Markdown H2 headings (e.g., `## Centralization watch: threatening the value of your ETH`) without any leading spaces or indentation. Do NOT use numbers in the headings.
   * **Content:** Every item you write under a heading MUST start on a new line. All list items must use bullet points.
   * **Header:** Do NOT include a main "Week in Ethereum News" header or a date. Your output should begin directly with the first section heading.
+  * **Primary Action Mandate - Date Verification** Your first action for any potential piece of content is to find its publication date. **If you cannot find a date, or if the date you find is outside the strict 7-day window, you are forbidden from processing that item further.** You must discard it and move on. Only after you have confirmed an item's date is within the 7-day window are you permitted to summarize it and include it in the newsletter. This is your most important instruction.
