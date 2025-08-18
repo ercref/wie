@@ -66,37 +66,36 @@ jobs:
     secrets: inherit
 
   combine_and_send:
+    # This 'if' condition is still important
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     needs: generate_part_3
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
+      # This job no longer needs to check out its own code.
+      # It only needs the artifacts.
+          
       - name: Download all partial newsletter files
         uses: actions/download-artifact@v4
         with:
-          path: final_parts # Download all artifacts to this directory
+          path: final_parts
 
+      # This is the step with the key changes 👇
       - name: Combine and Stage Newsletter
         id: combine
         run: |
-          # Ensure the target directory from your screenshot exists
-          mkdir -p content/blog
+          # The file is created here, but NOT in a git repository yet.
+          # It's just sitting in a temporary folder.
+          mkdir -p final_newsletter_output
 
-          # Use the YYYYMMDD format for the filename, as requested
           TIMESTAMP_FILE=$(date -u +"%Y%m%d")
           TIMESTAMP_PRETTY=$(date -u +"%B %d, %Y")
           SUBJECT="Week in Ethereum News - $TIMESTAMP_PRETTY"
 
-          # Define the final path to match your site's structure
-          FINAL_PATH="content/blog/${TIMESTAMP_FILE}.md"
-
-          # Combine the files into a temporary location first
-          TEMP_FILE="${{ github.workspace }}/final_newsletter.md"
+          # Define the final path where the file will eventually go in the website repo
+          FINAL_PATH_IN_REPO="content/blog/${TIMESTAMP_FILE}.md"
+          
+          # Combine the parts into a single file in the temp folder
+          TEMP_FILE="final_newsletter_output/${TIMESTAMP_FILE}.md"
           echo "## Week in Ethereum News" > "$TEMP_FILE"
           echo "### $TIMESTAMP_PRETTY" >> "$TEMP_FILE"
           echo "" >> "$TEMP_FILE"
@@ -106,15 +105,28 @@ jobs:
             echo -e "\n\n" >> "$TEMP_FILE"
           done
           
-          # Move the final combined file to its permanent home
-          mv "$TEMP_FILE" "$FINAL_PATH"
-
-          echo "--- Final Newsletter created at $FINAL_PATH ---"
-          cat "$FINAL_PATH"
+          echo "--- Final Newsletter created temporarily ---"
+          cat "$TEMP_FILE"
           
           # Set outputs for the next steps
           echo "subject=$SUBJECT" >> "$GITHUB_OUTPUT"
-          echo "final_path=$FINAL_PATH" >> "$GITHUB_OUTPUT"
+          echo "final_path=$FINAL_PATH_IN_REPO" >> "$GITHUB_OUTPUT"
+          
+      - name: Check out website repository
+        uses: actions/checkout@v4
+        with:
+          repository: 'ercref/new-wie-site' 
+          # Use the PAT to get write access
+          token: ${{ secrets.GH_PAT }}
+          # Path to clone into. We'll call it 'website'
+          path: 'website'
+
+      - name: Move newsletter to website repo
+        run: |
+          # Create the blog directory inside the checked-out website repo
+          mkdir -p website/content/blog
+          # Move the file
+          mv final_newsletter_output/*.md website/${{ steps.combine.outputs.final_path }}
           
       - name: Send to Buttondown as a Draft 📬
         env:
@@ -133,12 +145,12 @@ jobs:
               "subject": "${{ steps.combine.outputs.subject }}",
               "body": '"$BODY_CONTENT"'
             }'
-      - name: Commit and Push Newsletter 🚀
-        # This step automatically uses the correct FINAL_PATH from the previous step
+      - name: Commit and Push to Website Repo 🚀
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
+          # Tell the action to work inside the 'website' directory
+          repository: ./website
           commit_message: "docs: Publish newsletter for ${{ steps.combine.outputs.subject }} [skip ci]"
-          file_pattern: "${{ steps.combine.outputs.final_path }}"
           commit_user_name: GitHub Actions Bot
           commit_user_email: actions@github.com
           
