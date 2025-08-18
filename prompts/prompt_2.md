@@ -7,10 +7,10 @@ The newsletter must cover **only the 7-day period concluding on the date of exec
 **Newsletter Structure and Content Guidelines (Emulating "Week in Ethereum News"):**
 ## **News Sections:** *(The following numbered sections are part of the overall newsletter structure. They should only be included if relevant news from the past 7 days exists for them. Each item under these headings must be a bullet point.)*
 
-**6. Layer 2**
+**1. Layer 2**
 
   * **Source of Information:** You must actively browse the web for this information. Primary sources are official project blogs (e.g., Arbitrum, Optimism, Base, Starknet), developer posts on X (formerly Twitter), and reputable crypto news outlets covering L2s.
-  * **Content:** Based on developments from the past 7 days, report on significant technical and ecosystem developments related to Layer 2s. Your goal is to report on specific technical milestones, new features, and notable project launches, not just TVL or activity statistics. Each item should be a bullet point.
+  * **Content:** Based on developments from the past 7 days, report on significant technical and ecosystem developments related to Layer 2s. Your goal is to report on specific technical milestones, new features, and notable project launches, not just TVL or activity statistics. Each item should be a bullet point. For each bullet point, embed a source link on the key term or subject.
   * **Focus:**
       * Rollup Milestones & Proving Systems: Report on any L2 achieving a new "stage" of decentralization (e.g., Stage 1 or 2 rollup status) or updates to their proving systems (e.g., launching new fault proofs or validity provers).
       * New Features & Developer Tools: Look for new user or developer features that improve the L2's functionality, such as forced transaction inclusion mechanisms, new developer tools, or economic model changes.
@@ -18,10 +18,10 @@ The newsletter must cover **only the 7-day period concluding on the date of exec
       * Research & Innovative Designs: Summarize any new or significant design proposals for rollups or L2 architecture coming from researchers or developers.
   * **Keywords for Search (Starting Points):** "Layer 2 Ethereum updates," "L2 fault proofs," "L2 rollup stages," "new Layer 2 launch," "L2 new virtual machine," "blob usage," "L2 new features."
 
-**7. Stuff for Developers**
+**2. Stuff for Developers**
 
   * **Source of Information:** You must actively browse the web. Your primary sources are official project GitHub repositories (especially release pages), developer blogs, and posts on X (formerly Twitter) from prominent dev tool teams (Foundry, Hardhat, OpenZeppelin, etc.) and well-known developers.
-  * **Content:** Based on developments from the past 7 days, report on specific updates to developer tools, new open-source libraries, and practical resources for builders. Your goal is to find a diverse set of concrete updates for developers. Do NOT report on general EIP discussions or their status changes in this section.
+  * **Content:** Based on developments from the past 7 days, report on specific updates to developer tools, new open-source libraries, and practical resources for builders. Your goal is to find a diverse set of concrete updates for developers. Do NOT report on general EIP discussions or their status changes in this section. For each bullet point, embed a source link on the key term or subject.
   * **Focus:**
       * **Updates to Developer Frameworks & Tooling:** Look for new versions or significant feature releases for any popular smart contract development frameworks, testing suites, or general tooling. For each tool with an update, create a main bullet point with the tool's name (e.g., * Foundry:) and use nested bullet points for specific updates.
       * **New Libraries, Utilities & Smart Contracts:** Report on the release of new open-source libraries, helpful utilities, or interesting smart contract designs that developers can use (e.g., new Solidity/Vyper libraries, innovative contract architectures).
@@ -29,9 +29,9 @@ The newsletter must cover **only the 7-day period concluding on the date of exec
       * **Contests & Capture The Flags (CTFs):** Announce new developer-focused contests or CTFs, or report on the winners and interesting solutions from recently concluded ones.
   * **Keywords for Search (Starting Points):** "Ethereum developer tools," "EVM developer framework," "Solidity tooling," "smart contract library update," "Solidity guide," "Vyper tutorial," "Solidity CTF."
 
-**8. Security**
+**3. Security**
 
-  * **Content:** Report on security incidents, vulnerabilities, audits, and best practices relevant to the Ethereum ecosystem, from the past 7 days. Each item should be a bullet point.
+  * **Content:** Report on security incidents, vulnerabilities, audits, and best practices relevant to the Ethereum ecosystem, from the past 7 days. Each item should be a bullet point. For each bullet point, embed a source link on the key term or subject.
   * **Focus:**
       * Details of any significant DeFi exploits or hacks (protocol, amount lost, nature of vulnerability, post-mortems).
       * Newly disclosed vulnerabilities in smart contracts, clients, wallets, or L2s.
@@ -40,9 +40,9 @@ The newsletter must cover **only the 7-day period concluding on the date of exec
       * Discussions on formal verification, bug bounties.
   * **Keywords for Search (Starting Points):** "DeFi hack," "Ethereum security vulnerability," "smart contract audit," "crypto exploit report," "Ethereum bug bounty."
 
-**9. Ecosystem**
+**4. Ecosystem**
 
-  * **Content:** Broader news from the Ethereum ecosystem, including DAOs, NFTs, public goods, and community initiatives, from the past 7 days. Each item should be a bullet point.
+  * **Content:** Broader news from the Ethereum ecosystem, including DAOs, NFTs, public goods, and community initiatives, from the past 7 days. Don't mention Eth R&D Protocol Call(s). Each item should be a bullet point. For each bullet point, embed a source link on the key term or subject.
   * **Focus:**
       * Major project milestones or product launches not covered in more specific sections.
       * Significant DAO governance proposals, votes, or treasury actions.
@@ -51,9 +51,9 @@ The newsletter must cover **only the 7-day period concluding on the date of exec
       * Community-led events, educational initiatives, or important discussions.
   * **Keywords for Search (Starting Points):** "Ethereum project launch," "DAO news," "Gitcoin grants," "NFT news Ethereum," "Ethereum community."
 
-**10. Notable at app layer**
+**5. Notable at app layer**
 
-  * **Content:** Highlight interesting new decentralized applications (dapps), user-facing innovations, or significant updates to existing applications on Ethereum or L2s, from the past 7 days. Each item should be a bullet point.
+  * **Content:** Highlight interesting new decentralized applications (dapps), user-facing innovations, or significant updates to existing applications on Ethereum or L2s, from the past 7 days. Each item should be a bullet point. For each bullet point, embed a source link on the key term or subject.
   * **Focus:**
       * Innovative or unique dapps gaining traction.
       * Significant feature releases or milestones for established applications.
@@ -88,9 +88,9 @@ The newsletter must cover **only the 7-day period concluding on the date of exec
   * **"Week in Ethereum News" Style:** **This is paramount.** Emulate the exact section titling, dynamic inclusion of all sections based on weekly content, general style, depth, and comprehensiveness of a typical "Week in Ethereum News" issue. The AI should "read" several recent issues to internalize the style, tone, and level of detail.
 
 **Output Format:**
-
   * **General:** The final output should be a well-formatted newsletter in Markdown, suitable for publication, with all original links and references preserved.
   * **Scope:** Your output must ONLY contain the sections listed in this prompt (Layer 2, Developer Stuff, Security, Ecosystem, Notable at app layer). Do not generate content for any other sections.
   * **Headings:** All section headings MUST be formatted as Markdown H2 headings (e.g., `## Layer 2`)  without any leading spaces or indentation. Do NOT use numbers in the headings.
   * **Content:** Every item you write under a heading MUST start on a new line. All list items must use bullet points.
   * **Header:** Do NOT include a main "Week in Ethereum News" header or a date. Your output should begin directly with the first section heading.
+  * **Primary Action Mandate - Date Verification** Your first action for any potential piece of content is to find its publication date. **If you cannot find a date, or if the date you find is outside the strict 7-day window, you are forbidden from processing that item further.** You must discard it and move on. Only after you have confirmed an item's date is within the 7-day window are you permitted to summarize it and include it in the newsletter. This is your most important instruction.
