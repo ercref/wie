@@ -22,6 +22,9 @@ The newsletter must cover **only the 7-day period concluding on the date of exec
       * Provide summaries for any core developer calls (ACDE, ACDC, etc.) that had notes published or were discussed within the past 7 days.
       * **Primarily source these summaries from posts by Andrew B Coathup (`@abcoathup`) on Ethereum Magicians (`https://ethereum-magicians.org/u/abcoathup/activity`).** Check this source for any new call notes posted within the 7-day window.
       * For each call summarized, **you MUST include a direct link to the specific Ethereum Magicians post** (e.g., `https://ethereum-magicians.org/t/acdc-call-123-date/xxxxx`).
+      * Under the main bullet point, you MUST create a nested, bulleted list summarizing the key topics.
+      * For each major topic (e.g., Pectra upgrade, History expiry), create a nested bullet point (e.g.,   * Pectra upgrade:).
+      * Under each major topic, create further nested bullet points detailing the specific points discussed. 
       * The structure and level of detail for each call's summary should emulate how "Week in Ethereum News" typically presents these (e.g., highlighting key discussion points, decisions, and action items, often with sub-bullets for different topics discussed in the call).
       * **Crucially, verify the date of the call itself and any critical details (like EIPs discussed or major decisions) against official sources (e.g., meeting agendas/notes on `https://github.com/ethereum/pm`) even when using summaries from Ethereum Magicians. Do NOT report calls or summaries of calls that occurred outside the specified 7-day window. If no relevant calls were summarized by `@abcoathup` or had official notes published this week, state that clearly or omit this section.**
   * **Primary Sources for this Section:**
@@ -29,14 +32,9 @@ The newsletter must cover **only the 7-day period concluding on the date of exec
       * Verification & Official Agendas/Notes: `https://github.com/ethereum/pm`.
   * **Keywords for Search (Contextual, focus on checking primary sources first):** "Ethereum AllCoreDevs summary," "ACDE notes," "ACDC notes," "Ethereum core dev call."
 
-**2. Pectra (Prague + Electra) Upgrade (or current named mainnet upgrade)**
+**2. Fusaka (Osaka + Fulu) upgrade**
 
-  * **Content:** Report specific progress, new EIPs considered/included (notably **EIP-7600: Pectra Upgrade Meta, see `https://eips.ethereum.org/EIPS/eip-7600`**), client readiness updates, testnet news, or important discussions related to the Pectra upgrade (or the current primary upcoming mainnet upgrade by its name) from the past 7 days. Focus should include updates on **devnets, specific testnet activities, dedicated Pectra testing calls,** and client compatibility related to Pectra from the past 7 days.
-  * **Keywords for Search:** "Pectra upgrade news," "[current\_upgrade\_name] Ethereum," "Ethereum network upgrade," "Pectra testnet," "Pectra testing call," "EIP-7600."
-
-**3. Future Protocol Upgrade (Post-Pectra)**
-
-  * **Content:** Based on developments from the past 7 days, report on early-stage discussions, research, proposals, and specific technical calls related to the next major network upgrade planned after Pectra (e.g., currently named Fusaka). **Do not  list EIPs in this section**; instead, focus on the developments around the core technologies being built for future upgrades.
+  * **Content:** Based on developments from the past 7 days, report on active implementation progress, specific technical calls, and testnet updates related to the Fusaka upgrade, which is the next major network upgrade planned after Pectra. **Do not list EIPs in this section** Instead, focus on the maturation of the core technologies being prepared for the upgrade.
   * **Focus Areas to Investigate & Report On** "
     * **Specific Implementer & Breakout Calls:** Actively look for and summarize notes from technical breakout sessions or implementer calls that occurred this week. Report the call number and key discussion points. Examples of calls to look for include:
        * PeerDAS breakout calls
@@ -48,6 +46,19 @@ The newsletter must cover **only the 7-day period concluding on the date of exec
        * New research or major discussions on ethresear.ch related to statelessness, state management, etc.
   * **Primary Sources for this Section:** ethresear.ch, github.com/ethereum/pm (for meeting notes/agendas), official client team blogs, and trusted summaries on platforms like Ethereum Magicians.
   * **Keywords for Search:** "PeerDAS breakout call," "EOF implementers call," "Verkle Tries Ethereum," "Ethereum statelessness research," "peerdas-devnet," "Ethereum protocol roadmap."
+
+**3. Glamsterdam (Amsterdam–G-Star) Upgrade**
+
+  * **Content:** Based on developments from the past 7 days, report on foundational research, new concepts, and early-stage roadmap discussions related to the Glamsterdam upgrade, which is planned for after Fusaka. **Do not list EIPs in this section** The focus here is on long-term R&D, not active implementation.
+  * **Focus Areas to Investigate & Report On:**
+    * **Foundational Research:** Summarize significant new research posts or major discussion threads on ethresear.ch that explore long-term challenges and potential solutions. Key topics include:
+        * Advanced Account Abstraction (e.g., protocol-enshrined AA).
+        * State expiry and historical data management solutions.
+        * Quantum resistance for the protocol.
+        * Secret leader election or other validator privacy enhancements.
+    * **Roadmap Discussions:** Report on any discussions from high-level calls (like All Core Devs Execution - ACDE) where the scope or potential features of post-Fusaka upgrades are debated.
+  * **Primary Sources:** ethresear.ch, ethereum-magicians.org, and meeting notes from github.com/ethereum/pm.
+  * **Keywords for Search:** "Ethereum long-term roadmap," "post-Fusaka upgrade," "Glamsterdam Upgrade," "state expiry research," "account abstraction roadmap," "quantum resistance Ethereum," "secret leader election."
 
 **4. Layer 1**
   * **Source of Information:** You must actively browse the web for this information, focusing on ethresear.ch, github.com/ethereum/pm, ethereum-magicians.org, and relevant researcher/developer posts on platforms like X (formerly Twitter) or personal blogs.
@@ -74,6 +85,7 @@ The newsletter must cover **only the 7-day period concluding on the date of exec
   * **Output Structure:**
     * For each distinct major topic or thread you find, create a main bullet point to act as a thematic heading (e.g., * [Theme of Research]:).
     * Under each topic, create one or more nested bullet points summarizing the specific research paper, proposal, or discussion.
+    * For each detail, embed a source link on the key term or subject.
   * **Keywords for Search:**  "ethresear.ch," "Ethereum research."
 
 **General AI Instructions:**
@@ -104,9 +116,9 @@ The newsletter must cover **only the 7-day period concluding on the date of exec
   * **"Week in Ethereum News" Style:** **This is paramount.** Emulate the exact section titling, dynamic inclusion of all sections based on weekly content, general style, depth, and comprehensiveness of a typical "Week in Ethereum News" issue. The AI should "read" several recent issues to internalize the style, tone, and level of detail.
 
 **Output Format:**
-
   * **General:** The final output should be a well-formatted newsletter in Markdown, suitable for publication, with all original links and references preserved.
   * **Scope:** Your output must ONLY contain the sections listed in this prompt (Highlight of the Week, Eth R&D Protocol Call(s), Pectra Upgrade, Future Protocol Upgrade, Layer 1, Research). Do not generate content for any other sections.
   * **Headings:** All section headings MUST be formatted as Markdown H2 headings (e.g., `## Highlight of the Week`) without any leading spaces or indentation. Do NOT use numbers in the headings.
   * **Content:** Every item you write under a heading MUST start on a new line. All list items must use bullet points.
   * **Header:** Do NOT include a main "Week in Ethereum News" header or a date. Your output should begin directly with the first section heading.
+  * **Primary Action Mandate - Date Verification** Your first action for any potential piece of content is to find its publication date. **If you cannot find a date, or if the date you find is outside the strict 7-day window, you are forbidden from processing that item further.** You must discard it and move on. Only after you have confirmed an item's date is within the 7-day window are you permitted to summarize it and include it in the newsletter. This is your most important instruction.
