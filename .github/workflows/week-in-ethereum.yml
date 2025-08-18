@@ -111,6 +111,20 @@ jobs:
           # Set outputs for the next steps
           echo "subject=$SUBJECT" >> "$GITHUB_OUTPUT"
           echo "final_path=$FINAL_PATH_IN_REPO" >> "$GITHUB_OUTPUT"
+      
+      - name: Send to Buttondown as a Draft 📬
+        env:
+          BUTTONDOWN_API_KEY: ${{ secrets.BUTTONDOWN_API_KEY }}
+        run: |
+          BODY_CONTENT=$(jq -Rs . "${{ steps.combine.outputs.final_path }}")
+          curl --request POST \
+            --url https://api.buttondown.email/v1/emails \
+            --header "Authorization: Token $BUTTONDOWN_API_KEY" \
+            --header 'Content-Type: application/json' \
+            --data '{
+              "subject": "${{ steps.combine.outputs.subject }}",
+              "body": '"$BODY_CONTENT"'
+            }'
           
       - name: Check out website repository
         uses: actions/checkout@v4
@@ -128,20 +142,6 @@ jobs:
           # Move the file
           mv final_newsletter_output/*.md website/${{ steps.combine.outputs.final_path }}
           
-      - name: Send to Buttondown as a Draft 📬
-        # This step doesn't need to be changed
-        env:
-          BUTTONDOWN_API_KEY: ${{ secrets.BUTTONDOWN_API_KEY }}
-        run: |
-          BODY_CONTENT=$(jq -Rs . "${{ steps.combine.outputs.final_path }}")
-          curl --request POST \
-            --url https://api.buttondown.email/v1/emails \
-            --header "Authorization: Token $BUTTONDOWN_API_KEY" \
-            --header 'Content-Type: application/json' \
-            --data '{
-              "subject": "${{ steps.combine.outputs.subject }}",
-              "body": '"$BODY_CONTENT"'
-            }'
             
       - name: Commit and Push to Website Repo 🚀
         uses: stefanzweifel/git-auto-commit-action@v5
