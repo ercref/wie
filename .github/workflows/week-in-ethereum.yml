@@ -83,13 +83,20 @@ jobs:
           TIMESTAMP_FILE=$(date -u +"%Y%m%d")
           TIMESTAMP_PRETTY=$(date -u +"%B %d, %Y")
           SUBJECT="Week in Ethereum News - $TIMESTAMP_PRETTY"
+          TITLE_DATE=$(date -u +"%Y-%m-%d")
           
           FINAL_PATH_IN_REPO="content/blog/${TIMESTAMP_FILE}.md"
           TEMP_FILE="final_newsletter_output/${TIMESTAMP_FILE}.md"
 
-          echo "## Week in Ethereum News" > "$TEMP_FILE"
-          echo "### $TIMESTAMP_PRETTY" >> "$TEMP_FILE"
-          echo "" >> "$TEMP_FILE"
+          cat <<EOF > "$TEMP_FILE"
+          ---
+          title: "New Week in Ethereum ${TITLE_DATE}"
+          ---
+
+          ## Week in Ethereum News
+          ### ${TIMESTAMP_PRETTY}
+
+          EOF
           
           for part_file in $(find final_parts/ -name "part_*_output.md" | sort); do
             cat "$part_file" >> "$TEMP_FILE"
@@ -102,7 +109,6 @@ jobs:
           # Set outputs for the next steps
           echo "subject=$SUBJECT" >> "$GITHUB_OUTPUT"
           echo "final_path=$FINAL_PATH_IN_REPO" >> "$GITHUB_OUTPUT"
-          # NEW 👇: Add an output for the temporary file's path
           echo "temp_file_path=$TEMP_FILE" >> "$GITHUB_OUTPUT"
 
       - name: Send to Buttondown as a Draft 📬
