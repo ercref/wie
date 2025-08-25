@@ -95,6 +95,7 @@ jobs:
 
           ## Week in Ethereum News
           ### ${TIMESTAMP_PRETTY}
+          [![See this newsletter on browser](https://img.shields.io/badge/-See%20this%20newsletter%20on%20browser-blue?style=for-the-badge)](https://new-wie-site.vercel.app/)
 
           EOF
           
