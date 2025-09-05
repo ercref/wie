@@ -118,7 +118,21 @@ jobs:
           echo "final_path=$FINAL_PATH_IN_REPO" >> "$GITHUB_OUTPUT"
           echo "temp_file_path=$TEMP_FILE" >> "$GITHUB_OUTPUT"
           echo "permalink=$PERMALINK" >> "$GITHUB_OUTPUT"
-            
+
+      - name: Send to Buttondown as a Draft 📬
+        env:
+          BUTTONDOWN_API_KEY: ${{ secrets.BUTTONDOWN_API_KEY }}
+        run: |
+          BODY_CONTENT=$(jq -Rs . "${{ steps.combine.outputs.temp_file_path }}")
+          curl --request POST \
+            --url https://api.buttondown.email/v1/emails \
+            --header "Authorization: Token $BUTTONDOWN_API_KEY" \
+            --header 'Content-Type: application/json' \
+            --data '{
+              "subject": "${{ steps.combine.outputs.subject }}",
+              "body": '"$BODY_CONTENT"'
+            }'
+   
       - name: Check out website repository
         uses: actions/checkout@v4
         with:
