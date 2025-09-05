@@ -10,16 +10,14 @@ HTTP_HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
 }
 
-# Before running your GitHub Action, update the values in this dictionary.
-
 MANUAL_CLIENT_DIVERSITY_DATA = {
     "section_title": "Manually Updated Client Diversity Data",
     "source_checked": "clientdiversity.org (verified via execution-clients.com and Miga Labs)",
-    "date_data_pulled": "2025-06-06",  # <-- UPDATE THIS WEEKLY (date you got the data)
-    "data_as_of_date": "2025-06-06",  # <-- UPDATE THIS WEEKLY (date the data source refers to, if available)
+    "date_data_pulled": "2025-09-05",  # <-- UPDATE THIS WEEKLY (date you got the data)
+    "data_as_of_date": "2025-09-05",  # <-- UPDATE THIS WEEKLY (date the data source refers to, if available)
     "key_staking_entity_share": {
         "entity_name": "Lido",
-        "share_percentage": "25.84%",      # <-- UPDATE THIS WEEKLY
+        "share_percentage": "24.06%",      # <-- UPDATE THIS WEEKLY
         "source_link": "https://dune.com/hildobby/eth2-staking"  # <-- UPDATE THIS LINK IF NEEDED
     },
     "consensus_clients_note": "Sourced from Miga Labs via clientdiversity.org",
