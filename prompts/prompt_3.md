@@ -60,10 +60,10 @@ The newsletter must cover **only the 7-day period concluding on the date of exec
     ```markdown
 
     * Fees (via [ultrasound.money](https://ultrasound.money)):
-        * Gas: 0.2 to 9.5 gwei, 1.0 gwei average; zero net issuance at 20.5 gwei
-        * 2.7k ETH net issuance this week
-    * [ETHUSD](https://www.coingecko.com/en/coins/ethereum): $2507 – $2598, currently $2,582, all time high $4,878
-    * [ETHBTC](https://ratiogang.com/): currently 0.0236 (Flippening at ~0.165)
+        * Gas: 0.1 to 16.3 gwei, 1.3 gwei average; zero net issuance at 28.27 gwei
+        * 17.17 ETH net issuance this week
+    * [ETHUSD](https://www.coingecko.com/en/coins/ethereum): $$4,241 – $4,487, currently $4,349, all time high $4,946
+    * [ETHBTC](https://ratiogang.com/): currently 0.038 (Flippening at ~0.165)
     ```
 
 **5. Enterprise**
