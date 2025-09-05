@@ -79,53 +79,46 @@ jobs:
         id: combine
         run: |
           mkdir -p final_newsletter_output
-
+      
           TIMESTAMP_FILE=$(date -u +"%Y%m%d")
           TIMESTAMP_PRETTY=$(date -u +"%B %d, %Y")
           SUBJECT="Week in Ethereum News - $TIMESTAMP_PRETTY"
           TITLE_DATE=$(date -u +"%Y-%m-%d")
-          
+      
+          # Optional: let SITE_BASE_URL come from repo/env vars, default to prod
+          SITE_BASE_URL="${{ vars.SITE_BASE_URL }}"
+          if [ -z "$SITE_BASE_URL" ]; then SITE_BASE_URL="https://wie.ercref.org"; fi
+      
+          # This is the exact URL you want the button to use
+          PERMALINK="$SITE_BASE_URL/blog/${TIMESTAMP_FILE}/"
+      
           FINAL_PATH_IN_REPO="content/blog/${TIMESTAMP_FILE}.md"
           TEMP_FILE="final_newsletter_output/${TIMESTAMP_FILE}.md"
-
+      
           cat <<EOF > "$TEMP_FILE"
           ---
           title: "New Week in Ethereum ${TITLE_DATE}"
           ---
-
+          
           ## Week in Ethereum News
           ### ${TIMESTAMP_PRETTY}
-          [![See this newsletter on browser](https://img.shields.io/badge/-See%20this%20newsletter%20on%20browser-blue?style=for-the-badge)](https://new-wie-site.vercel.app/)
-
-          EOF
+          [![See this newsletter on browser](https://img.shields.io/badge/-See%20this%20newsletter%20on%20browser-blue?style=for-the-badge)](${PERMALINK})
           
+          EOF
+      
           for part_file in $(find final_parts/ -name "part_*_output.md" | sort); do
             cat "$part_file" >> "$TEMP_FILE"
             echo -e "\n\n" >> "$TEMP_FILE"
           done
-          
+      
           echo "--- Final Newsletter created temporarily ---"
           cat "$TEMP_FILE"
-          
-          # Set outputs for the next steps
+      
+          # Set outputs for the next steps (handy if you ever want to reference the URL later)
           echo "subject=$SUBJECT" >> "$GITHUB_OUTPUT"
           echo "final_path=$FINAL_PATH_IN_REPO" >> "$GITHUB_OUTPUT"
           echo "temp_file_path=$TEMP_FILE" >> "$GITHUB_OUTPUT"
-
-      - name: Send to Buttondown as a Draft 📬
-        env:
-          BUTTONDOWN_API_KEY: ${{ secrets.BUTTONDOWN_API_KEY }}
-        run: |
-          # CHANGED 👇: Use the new 'temp_file_path' output to read from the correct location
-          BODY_CONTENT=$(jq -Rs . "${{ steps.combine.outputs.temp_file_path }}")
-          curl --request POST \
-            --url https://api.buttondown.email/v1/emails \
-            --header "Authorization: Token $BUTTONDOWN_API_KEY" \
-            --header 'Content-Type: application/json' \
-            --data '{
-              "subject": "${{ steps.combine.outputs.subject }}",
-              "body": '"$BODY_CONTENT"'
-            }'
+          echo "permalink=$PERMALINK" >> "$GITHUB_OUTPUT"
             
       - name: Check out website repository
         uses: actions/checkout@v4
