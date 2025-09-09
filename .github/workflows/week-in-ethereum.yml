@@ -2,14 +2,12 @@ name: Weekly Ethereum Newsletter
 
 on:
   schedule:
-  # Triggers at 15:00 UTC every Friday (8:00 AM PDT)
+    # Triggers at 15:00 UTC every Friday (8:00 AM PDT)
     - cron: '0 15 * * 5'
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
@@ -22,15 +20,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Install Python and requirements
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          
+
       - name: Build Prompt Context (last 7 days)
         run: python scripts/build_prompt_context.py
-        
+
       - name: Print context
         run: cat scripts/prompt_context.md
 
@@ -46,11 +44,11 @@ jobs:
     uses: ./.github/workflows/run-single-section.yml
     with:
       part_number: 1
-    secrets: inherit # This correctly passes your LLM_API_KEY
+    secrets: inherit
 
   generate_part_2:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
-    needs: generate_part_1 
+    needs: generate_part_1
     uses: ./.github/workflows/run-single-section.yml
     with:
       part_number: 2
@@ -65,34 +63,44 @@ jobs:
       context_needed: true
     secrets: inherit
 
-  combine_and_send:
+  # NEW: Combine newsletter & create Buttondown DRAFT, then send draft to EIC
+  combine_and_draft:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     needs: generate_part_3
     runs-on: ubuntu-latest
+    outputs:
+      subject: ${{ steps.combine.outputs.subject }}
+      final_path: ${{ steps.combine.outputs.final_path }}
+      temp_file_path: ${{ steps.combine.outputs.temp_file_path }}
+      permalink: ${{ steps.combine.outputs.permalink }}
+      email_id: ${{ steps.create_draft.outputs.email_id }}
     steps:
       - name: Download all partial newsletter files
         uses: actions/download-artifact@v4
         with:
           path: final_parts
 
+      - name: Install tools
+        run: sudo apt-get update && sudo apt-get install -y jq
+
       - name: Combine and Stage Newsletter
         id: combine
         run: |
           mkdir -p final_newsletter_output
-      
+
           TIMESTAMP_FILE=$(date -u +"%Y%m%d")
           TIMESTAMP_PRETTY=$(date -u +"%B %d, %Y")
           SUBJECT="Week in Ethereum News - $TIMESTAMP_PRETTY"
           TITLE_DATE=$(date -u +"%Y-%m-%d")
-      
+
           SITE_BASE_URL="${{ vars.SITE_BASE_URL }}"
           if [ -z "$SITE_BASE_URL" ]; then SITE_BASE_URL="https://wie.ercref.org"; fi
-      
+
           PERMALINK="$SITE_BASE_URL/blog/${TIMESTAMP_FILE}/"
-      
+
           FINAL_PATH_IN_REPO="content/blog/${TIMESTAMP_FILE}.md"
           TEMP_FILE="final_newsletter_output/${TIMESTAMP_FILE}.md"
-      
+
           cat <<EOF > "$TEMP_FILE"
           ---
           title: "New Week in Ethereum ${TITLE_DATE}"
@@ -105,51 +113,116 @@ jobs:
           [See this newsletter in your browser](${PERMALINK})
           
           EOF
-      
+
           for part_file in $(find final_parts/ -name "part_*_output.md" | sort); do
             cat "$part_file" >> "$TEMP_FILE"
             echo -e "\n\n" >> "$TEMP_FILE"
           done
-      
+
           echo "--- Final Newsletter created temporarily ---"
           cat "$TEMP_FILE"
-      
+
           echo "subject=$SUBJECT" >> "$GITHUB_OUTPUT"
           echo "final_path=$FINAL_PATH_IN_REPO" >> "$GITHUB_OUTPUT"
           echo "temp_file_path=$TEMP_FILE" >> "$GITHUB_OUTPUT"
           echo "permalink=$PERMALINK" >> "$GITHUB_OUTPUT"
 
-      - name: Send to Buttondown as a Draft 📬
+      - name: Create Buttondown draft (status=draft)
+        id: create_draft
         env:
           BUTTONDOWN_API_KEY: ${{ secrets.BUTTONDOWN_API_KEY }}
         run: |
           BODY_CONTENT=$(jq -Rs . "${{ steps.combine.outputs.temp_file_path }}")
-          curl --request POST \
-            --url https://api.buttondown.email/v1/emails \
-            --header "Authorization: Token $BUTTONDOWN_API_KEY" \
-            --header 'Content-Type: application/json' \
-            --data '{
+          # Create as an explicit DRAFT to avoid accidental sends
+          # Also set canonical_url so Buttondown archive points to your site permalink.
+          RESPONSE=$(curl -sS --fail \
+            -X POST https://api.buttondown.com/v1/emails \
+            -H "Authorization: Token $BUTTONDOWN_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{
               "subject": "${{ steps.combine.outputs.subject }}",
-              "body": '"$BODY_CONTENT"'
-            }'
-   
-      - name: Check out website repository
+              "body": '"$BODY_CONTENT"',
+              "status": "draft",
+              "canonical_url": "${{ steps.combine.outputs.permalink }}"
+            }')
+          echo "$RESPONSE" | jq .
+          EMAIL_ID=$(echo "$RESPONSE" | jq -r '.id')
+          if [ -z "$EMAIL_ID" ] || [ "$EMAIL_ID" = "null" ]; then
+            echo "Failed to parse email id from Buttondown response"; exit 1;
+          fi
+          echo "email_id=$EMAIL_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Email draft to Editor-in-Chief (send-draft)
+        if: always()
+        env:
+          BUTTONDOWN_API_KEY: ${{ secrets.BUTTONDOWN_API_KEY }}
+        run: |
+          curl -sS --fail \
+            -X POST "https://api.buttondown.com/v1/emails/${{ steps.create_draft.outputs.email_id }}/send-draft" \
+            -H "Authorization: Token $BUTTONDOWN_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{"recipients": ["226angelli@gmail.com"] }' \
+            -o /dev/null
+          echo "Sent draft to Editor-in-Chief for review."
+
+      - name: Upload draft artifact for manual review
+        uses: actions/upload-artifact@v4
+        with:
+          name: newsletter-draft
+          path: final_newsletter_output/*.md
+
+  # NEW: Manual approval gate. Configure the 'editor-approval' environment with required reviewers.
+  await_editor_approval:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    needs: combine_and_draft
+    runs-on: ubuntu-latest
+    environment:
+      name: editor-approval
+    steps:
+      - name: Awaiting Editor-in-Chief approval
+        run: echo "Proceed once Editor-in-Chief approves this deployment."
+
+  # NEW: Publish (Buttondown -> subscribers; Website commit/push)
+  publish_and_deploy:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    needs: await_editor_approval
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout website repository
         uses: actions/checkout@v4
         with:
-          repository: 'ercref/new-wie-site' 
+          repository: 'ercref/new-wie-site'
           token: ${{ secrets.GH_PAT }}
           path: 'website'
+
+      - name: Download staged newsletter
+        uses: actions/download-artifact@v4
+        with:
+          name: newsletter-draft
+          path: final_newsletter_output
 
       - name: Move newsletter to website repo
         run: |
           mkdir -p website/content/blog
-          # This now uses the correct variable for the destination path
-          mv final_newsletter_output/*.md website/${{ steps.combine.outputs.final_path }}
-          
+          mv final_newsletter_output/*.md website/${{ needs.combine_and_draft.outputs.final_path }}
+
       - name: Commit and Push to Website Repo 🚀
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           repository: ./website
-          commit_message: "docs: Publish newsletter for ${{ steps.combine.outputs.subject }} [skip ci]"
+          commit_message: "docs: Publish newsletter for ${{ needs.combine_and_draft.outputs.subject }} [skip ci]"
           commit_user_name: GitHub Actions Bot
           commit_user_email: actions@github.com
+
+      - name: Schedule Buttondown email to subscribers (send now)
+        env:
+          BUTTONDOWN_API_KEY: ${{ secrets.BUTTONDOWN_API_KEY }}
+        run: |
+          NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          curl -sS --fail \
+            -X PATCH "https://api.buttondown.com/v1/emails/${{ needs.combine_and_draft.outputs.email_id }}" \
+            -H "Authorization: Token $BUTTONDOWN_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{\"status\": \"scheduled\", \"publish_date\": \"${NOW}\"}" \
+            -o /dev/null
+          echo "Newsletter scheduled to send immediately."
