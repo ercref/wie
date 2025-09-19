@@ -171,7 +171,6 @@ jobs:
           name: newsletter-draft
           path: final_newsletter_output/*.md
 
-  # NEW: Manual approval gate. Configure the 'editor-approval' environment with required reviewers.
   await_editor_approval:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     needs: combine_and_draft
@@ -182,7 +181,6 @@ jobs:
       - name: Awaiting Editor-in-Chief approval
         run: echo "Proceed once Editor-in-Chief approves this deployment."
 
-  # NEW: Publish (Buttondown -> subscribers; Website commit/push)
   publish_and_deploy:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     needs: await_editor_approval
@@ -194,18 +192,68 @@ jobs:
           repository: 'ercref/new-wie-site'
           token: ${{ secrets.GH_PAT }}
           path: 'website'
-
-      - name: Download staged newsletter
-        uses: actions/download-artifact@v4
-        with:
-          name: newsletter-draft
-          path: final_newsletter_output
-
-      - name: Move newsletter to website repo
+  
+      - name: Install tools
         run: |
-          mkdir -p website/content/blog
-          mv final_newsletter_output/*.md website/${{ needs.combine_and_draft.outputs.final_path }}
-
+          sudo apt-get update
+          sudo apt-get install -y jq pandoc
+  
+      - name: Fetch final email from Buttondown & render to site file
+        id: backfill
+        env:
+          BUTTONDOWN_API_KEY: ${{ secrets.BUTTONDOWN_API_KEY }}
+        run: |
+          set -euo pipefail
+  
+          EMAIL_ID="${{ needs.combine_and_draft.outputs.email_id }}"
+          FINAL_PATH_IN_REPO="${{ needs.combine_and_draft.outputs.final_path }}"
+          PERMALINK="${{ needs.combine_and_draft.outputs.permalink }}"
+          SUBJECT="${{ needs.combine_and_draft.outputs.subject }}"
+  
+          RESPONSE=$(curl -sS --fail \
+            -H "Authorization: Token $BUTTONDOWN_API_KEY" \
+            "https://api.buttondown.com/v1/emails/${EMAIL_ID}")
+  
+          echo "$RESPONSE" | jq . >/dev/null
+  
+          BODY=$(echo "$RESPONSE" | jq -r '.body')
+  
+          TMP_DIR="$(mktemp -d)"
+          RAW_MD="${TMP_DIR}/raw.md"
+          RAW_HTML="${TMP_DIR}/raw.html"
+  
+          # Convert HTML → Markdown if needed
+          if echo "$BODY" | grep -qiE '</|<p|<h[1-6]|<ul|<ol|<div|<br'; then
+            echo "$BODY" > "$RAW_HTML"
+            pandoc "$RAW_HTML" -f html -t gfm -o "$RAW_MD"
+          else
+            echo "$BODY" > "$RAW_MD"
+          fi
+  
+          # Derive YYYYMMDD from FINAL_PATH_IN_REPO (e.g., content/blog/20250919.md)
+          FILE_BASENAME="$(basename "$FINAL_PATH_IN_REPO")"     # 20250919.md
+          STAMP="${FILE_BASENAME%.md}"                          # 20250919
+          YEAR="${STAMP:0:4}"
+          MONTH="${STAMP:4:2}"
+          DAY="${STAMP:6:2}"
+          TITLE_DATE="${YEAR}-${MONTH}-${DAY}"
+  
+          TARGET="website/${FINAL_PATH_IN_REPO}"
+          mkdir -p "$(dirname "$TARGET")"
+  
+          # Minimal front matter only, then the body (no extra headings)
+          {
+            echo '---'
+            echo "title: \"New Week in Ethereum ${TITLE_DATE}\""
+            echo "permalink: \"/blog/${STAMP}/\""
+            echo '---'
+            echo
+            cat "$RAW_MD"
+            echo
+          } > "$TARGET"
+  
+          echo "Wrote $(wc -c < "$TARGET") bytes to $TARGET"
+  
       - name: Commit and Push to Website Repo 🚀
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
@@ -213,7 +261,7 @@ jobs:
           commit_message: "docs: Publish newsletter for ${{ needs.combine_and_draft.outputs.subject }} [skip ci]"
           commit_user_name: GitHub Actions Bot
           commit_user_email: actions@github.com
-
+  
       - name: Schedule Buttondown email to subscribers (send now)
         env:
           BUTTONDOWN_API_KEY: ${{ secrets.BUTTONDOWN_API_KEY }}
