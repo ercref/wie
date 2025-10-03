@@ -183,7 +183,9 @@ jobs:
 
   publish_and_deploy:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
-    needs: await_editor_approval
+    needs:
+      - await_editor_approval
+      - combine_and_draft  
     runs-on: ubuntu-latest
     steps:
       - name: Checkout website repository
@@ -206,6 +208,10 @@ jobs:
           set -euo pipefail
   
           EMAIL_ID="${{ needs.combine_and_draft.outputs.email_id }}"
+          if [ -z "$EMAIL_ID" ]; then
+            echo "ERROR: EMAIL_ID is empty. Did you add 'combine_and_draft' to 'needs:'?"
+            exit 1
+          fi
           FINAL_PATH_IN_REPO="${{ needs.combine_and_draft.outputs.final_path }}"
           PERMALINK="${{ needs.combine_and_draft.outputs.permalink }}"
           SUBJECT="${{ needs.combine_and_draft.outputs.subject }}"
